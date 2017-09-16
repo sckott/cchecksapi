@@ -1,0 +1,12 @@
+---
+caching:
+  expires: 3600
+db:
+  localhost:
+    adapter: postgresql
+    encoding: utf8
+    host: localhost
+    username: sacmac
+    password:
+    port: 5432
+    database: roapi
