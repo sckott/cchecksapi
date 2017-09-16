@@ -1,13 +1,24 @@
 require "faraday"
 require "multi_json"
 require "oga"
+require "couchrest"
+
+server = CouchRest.new
+$cdb = server.database!('cchecksdb')
 
 def scrape_all
-  pkgs = ro_packages
+  pkgs = ro_packages;
   out = []
   pkgs.each do |x|
     out << scrape_pkg(x)
   end
+  out.map { |e| store_db(e) };
+end
+
+def store_db(x)
+  x.merge!({'_id' => x["package"]})
+  x.merge!({'date_created' => DateTime.now.to_time.utc})
+  $cdb.save_doc(x)
 end
 
 # scrape_pkg(pkg = "lawn") # exists
