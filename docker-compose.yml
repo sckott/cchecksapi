@@ -1,0 +1,22 @@
+couchdb:
+  image: klaemo/couchdb
+  volumes:
+    - $HOME/opt/couchdb/data
+  restart: always
+  ports:
+    - "5984:5984"
+
+api:
+  build: .
+  links:
+    - couchdb
+
+nginx:
+  ports:
+    - 80:80
+  links:
+    - api
+  volumes:
+    - ./nginx.conf:/etc/nginx/nginx.conf
+  image: nginx
+

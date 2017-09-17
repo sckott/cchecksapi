@@ -5,13 +5,10 @@ require "sinatra/multi_route"
 require 'yaml'
 require "couchrest"
 
-require_relative "scrape"
-require_relative "utils"
-
 #$config = YAML::load_file(File.join(__dir__, 'config.yaml'))
-
-server = CouchRest.new
-$cdb = server.database!('cchecksdb')
+server = CouchRest.new()
+#$cdb = server.database!('cchecksdb')
+#$cdb = server.database!('http://127.0.0.1:5986/' + 'cchecksdb')
 
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
