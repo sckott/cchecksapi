@@ -8,5 +8,6 @@ mongo:
 
 api:
   build: .
+  command: rake loadmongo
   links:
     - mongo
