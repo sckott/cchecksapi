@@ -1,5 +1,5 @@
-mongodb:
-  image: mongodb
+mongo:
+  image: mongo
   volumes:
     - $HOME/data/mongodb:/data/db
   restart: always
@@ -9,4 +9,4 @@ mongodb:
 api:
   build: .
   links:
-    - mongodb
+    - mongo
