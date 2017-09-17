@@ -5,12 +5,7 @@ require "sinatra/multi_route"
 require 'yaml'
 require "mongo"
 
-#$config = YAML::load_file(File.join(__dir__, 'config.yaml'))
-#server = CouchRest.new()
-#$cdb = server.database!('cchecksdb')
-#$cdb = server.database!('http://127.0.0.1:5986/' + 'cchecksdb')
-
-mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 $cks = mongo[:checks]
 
 class CCAPI < Sinatra::Application

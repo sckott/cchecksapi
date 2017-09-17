@@ -4,7 +4,7 @@ mongo:
     - $HOME/data/mongodb:/data/db
   restart: always
   ports:
-    - "5984:5984"
+    - "27017:27017"
 
 api:
   build: .
