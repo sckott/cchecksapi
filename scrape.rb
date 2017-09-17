@@ -1,10 +1,13 @@
 require "faraday"
 require "multi_json"
 require "oga"
-require "couchrest"
+require "mongo"
 
-server = CouchRest.new
-$cdb = server.database!('cchecksdb')
+# server = CouchRest.new
+# $cdb = server.database!('cchecksdb')
+
+mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+$cks = mongo[:checks]
 
 def scrape_all
   pkgs = ro_packages;
@@ -12,14 +15,21 @@ def scrape_all
   pkgs.each do |x|
     out << scrape_pkg(x)
   end
-  out.map { |e| store_db(e) };
+  #out.map { |e| store_mongo(e) };
+  $cks.insert_many(out.map { |e| prep_mongo(e) })
 end
 
-def store_db(x)
+def prep_mongo(x)
   x.merge!({'_id' => x["package"]})
   x.merge!({'date_created' => DateTime.now.to_time.utc})
-  $cdb.save_doc(x)
+  return x
 end
+
+# def store_db(x)
+#   x.merge!({'_id' => x["package"]})
+#   x.merge!({'date_created' => DateTime.now.to_time.utc})
+#   $cdb.save_doc(x)
+# end
 
 # scrape_pkg(pkg = "lawn") # exists
 # scrape_pkg(pkg = "alm") # doesn't exist

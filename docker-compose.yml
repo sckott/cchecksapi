@@ -1,7 +1,7 @@
-couchdb:
-  image: klaemo/couchdb
+mongodb:
+  image: mongodb
   volumes:
-    - $HOME/opt/couchdb/data
+    - $HOME/data/mongodb:/data/db
   restart: always
   ports:
     - "5984:5984"
@@ -9,4 +9,4 @@ couchdb:
 api:
   build: .
   links:
-    - couchdb
+    - mongodb

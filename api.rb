@@ -3,12 +3,15 @@ require 'sinatra'
 require 'multi_json'
 require "sinatra/multi_route"
 require 'yaml'
-require "couchrest"
+require "mongo"
 
 #$config = YAML::load_file(File.join(__dir__, 'config.yaml'))
-server = CouchRest.new()
+#server = CouchRest.new()
 #$cdb = server.database!('cchecksdb')
 #$cdb = server.database!('http://127.0.0.1:5986/' + 'cchecksdb')
+
+mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+$cks = mongo[:checks]
 
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
@@ -90,10 +93,12 @@ class CCAPI < Sinatra::Application
     begin
       lim = params[:limit] || 10
       off = params[:offset] || 0
-      d = $cdb.all_docs(:include_docs => true, :limit => lim, :skip => off)
-      dat = d["rows"].map { |x| x['doc'] }
+      #d = $cdb.all_docs(:include_docs => true, :limit => lim, :skip => off)
+      d = $cks.find()
+      #dat = d["rows"].map { |x| x['doc'] }
+      dat = d.to_a
       raise Exception.new('no results found') if d.nil?
-      { found: d["total_rows"], count: dat.length, offset: d["offset"], error: nil,
+      { found: d.count, count: dat.length, offset: nil, error: nil,
         data: dat }.to_json
     rescue Exception => e
       halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
@@ -103,7 +108,8 @@ class CCAPI < Sinatra::Application
   get '/pkgs/:name/?' do
     headers_get
     begin
-      d = $cdb.get(params[:name])
+      #d = $cdb.get(params[:name])
+      d = $cks.find({ package: params[:name] }).first
       raise Exception.new('no results found') if d.nil?
       { error: nil, data: d }.to_json
     rescue Exception => e
