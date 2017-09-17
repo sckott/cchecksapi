@@ -10,13 +10,3 @@ api:
   build: .
   links:
     - couchdb
-
-nginx:
-  ports:
-    - 80:80
-  links:
-    - api
-  volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf
-  image: nginx
-
