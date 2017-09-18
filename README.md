@@ -12,6 +12,7 @@ tech:
 * http requests: faraday
 * database: mongodb
 * server: caddy
+* container: all wrapped up in docker
 
 ## routes
 
