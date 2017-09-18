@@ -8,5 +8,7 @@ mongo:
 
 api:
   build: .
+  ports:
+    - "8834:8834"
   links:
     - mongo

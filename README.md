@@ -3,7 +3,15 @@ CRAN Check Results API
 
 Right now, this only concerns itself with rOpenSci packages on CRAN - but can easily add all pkgs on CRAN if there's a need.
 
-Base URL: xxx
+Base URL: https://cranchecks.info
+
+tech:
+
+* language: Ruby
+* rest framework: Sinatra
+* http requests: faraday
+* database: mongodb
+* server: caddy
 
 ## routes
 
@@ -13,16 +21,10 @@ Base URL: xxx
 * `/pkgs`
 * `/pkgs/:pkg_name:`
 
-### start
-
-```
-unicorn -p 8899
-```
-
 ### /heartbeat
 
 ```sh
-curl localhost:8899/heartbeat | jq .
+curl https://cranchecks.info/heartbeat | jq .
 ```
 
 ```json
@@ -39,7 +41,7 @@ curl localhost:8899/heartbeat | jq .
 ### /pkgs
 
 ```sh
-curl localhost:8899/pkgs | jq .
+curl https://cranchecks.info/pkgs | jq .
 ```
 
 ```json
@@ -67,7 +69,7 @@ curl localhost:8899/pkgs | jq .
 ### /pkgs/:pkg_name
 
 ```sh
-curl localhost:8899/pkgs/solrium | jq .
+curl https://cranchecks.info/pkgs/solrium | jq .
 ```
 
 ```json
