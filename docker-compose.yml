@@ -6,9 +6,21 @@ mongo:
   ports:
     - "27017:27017"
 
+redis:
+  image: redis:latest
+
 api:
   build: .
   ports:
     - "8834:8834"
   links:
+    - mongo
+
+sidekiq:
+  build: .
+  command: bundle exec sidekiq -r ./sidekiq.rb
+  volumes:
+    - .:/api
+  links:
+    - redis
     - mongo
