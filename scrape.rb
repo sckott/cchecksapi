@@ -8,7 +8,8 @@ $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.
 $cks = $mongo[:checks]
 
 def scrape_all
-  pkgs = ro_packages;
+  # pkgs = ro_packages;
+  pkgs = cran_packages;
   out = []
   pkgs.each do |x|
     out << scrape_pkg(x)
@@ -78,4 +79,23 @@ def ro_packages
   out = MultiJson.load(x.body)
   pkgs = out['packages'].collect { |x| x['name'] }
   return pkgs
+end
+
+def cran_packages
+  crandb_base = "https://crandb.r-pkg.org"
+  $crandb_conn = Faraday.new(:url => crandb_base) do |f|
+    f.adapter Faraday.default_adapter
+  end
+
+  def collect_crandb(start_key = "")
+    x = $crandb_conn.get "/-/desc", { :limit => 6000, :start_key => start_key }
+    out = MultiJson.load(x.body)
+    return out.keys.uniq
+  end
+
+  res = []
+  ["", "mljar"].each do |z|
+    res << collect_crandb(start_key = sprintf("\"%s\"", z))
+  end
+  return res.flatten.uniq
 end
