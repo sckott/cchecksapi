@@ -1,0 +1,1 @@
+0 3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmongo'
