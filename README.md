@@ -78,17 +78,16 @@ curl https://cranchecks.info/pkgs/solrium | jq .
   "error": null,
   "data": {
     "_id": "solrium",
-    "_rev": "1-d95aa09066451b92c59b3f108fd1b149",
     "package": "solrium",
     "checks": [
       {
         "Flavor": "r-devel-linux-x86_64-debian-clang ",
         "Version": "0.4.0 ",
-        "Tinstall": "1.82 ",
-        "Tcheck": "1800.07 ",
-        "Ttotal": "1801.89 ",
-        "Status": "FAIL",
-        "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-gcc/solrium-00check.html"
+        "Tinstall": "1.89 ",
+        "Tcheck": "34.40 ",
+        "Ttotal": "36.29 ",
+        "Status": "OK",
+        "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-clang/solrium-00check.html"
       },
 ...
 ```

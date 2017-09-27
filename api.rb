@@ -88,9 +88,7 @@ class CCAPI < Sinatra::Application
     begin
       lim = params[:limit] || 10
       off = params[:offset] || 0
-      #d = $cdb.all_docs(:include_docs => true, :limit => lim, :skip => off)
-      d = $cks.find()
-      #dat = d["rows"].map { |x| x['doc'] }
+      d = $cks.find({}, {"limit" => lim, "skip" => off})
       dat = d.to_a
       raise Exception.new('no results found') if d.nil?
       { found: d.count, count: dat.length, offset: nil, error: nil,
