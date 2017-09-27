@@ -1,4 +1,4 @@
-# rOpenSci API
+# cran checks API
 
 ## Contents
 
