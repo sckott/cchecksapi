@@ -21,13 +21,13 @@
 
 ## Base URL
 
-...coming soon
+<https://cranchecks.info>
 
 ## HTTP methods
 
-This is essentially a `read only` API. That is, we only allow `GET` (and `HEAD`) requests on this API.
+This is a `read only` API. That is, we only allow `GET` (and `HEAD`) requests on this API.
 
-Requests of all other types will be rejected with appropriate `405` code, including `POST`, `PUT`, `COPY`, `HEAD`, `DELETE`, etc.
+Requests of all other types will be rejected with appropriate `405` code.
 
 ## Response Codes
 
@@ -151,10 +151,11 @@ Response bodies generally look like:
 }]
 ```
 
-Successful requests have 4 slots: 
+Successful requests have 4 slots:
 
-* count: Number records found 
-* returned: Number records returned
+* found: Number records found
+* count: Number records returned
+* offset: offset value
 * error: If an error did not occur this is `null`, otherwise, an error message.
 * data: The hash of data if any data returned. If no data found, this is an empty hash (hash of length zero)
 
@@ -164,14 +165,13 @@ We serve up only JSON in this API. All responses will have `Content-Type: applic
 
 ## Pagination
 
-The query parameters `limit` (default = 10) and `offset` (default = 0) are always sent on the request (this doesn't apply to some routes, which don't accept any parameters (e.g., `/docs`)).
+The query parameters `limit` (default = 10) and `offset` (default = 0) can be sent.
 
-The response body from the server will include data on records found in `count` and number returned in `returned`:
+The response body from the server will include data on records found in `found` and number returned in `count`:
 
-* `"count": 1056`
-* `"returned": 10`
+* `"found": 1056`
+* `"count": 10`
 
-Ideally, we'd put in a helpful [links object](http://jsonapi.org/format/#fetching-pagination) - hopefully we'll get that done in the future. 
 
 ## Authentication
 
@@ -185,25 +185,8 @@ We don't use any. Cheers :)
     + Default: `10`
 + offset (integer, optional) Record `number` to start at.
     + Default: `0`
-+ fields (string, optional) Comma-separated `string` of fieds to return.
-    + Example: `SpecCode,Vulnerability`
 
-Above parameters common to all routes except:
-
-* [root](#root)
-* [heartbeat](#heartbeat)
-* [docs](#docs)
-* [mysqlping](#mysqlping)
-
-In addition, these do not support `limit` or `offset`:
-
-* [listfields](#listfields)
- 
-### Additional parameters
-
-Right now, any field that is returned from a route can also be queried on, except for the [/taxa route](#taxa), which only accepts `species` and `genus` in addition to the common parameters. All of the fields from each route are too long to list here - inspect data returned from a small data request, then change your query as desired.
-
-Right now, parameters that are not found are silently dropped. For example, if you query with `/species?foo=bar` in a query, and `foo` is not a field in `species` route, then the `foo=bar` part is ignored. We may in the future error when parameters are not found.
+Above parameters can be used only on `/pkgs`
 
 ## Routes
 
@@ -211,7 +194,7 @@ Right now, parameters that are not found are silently dropped. For example, if y
 
 > GET [/]
 
-Get heartbeat for the Fishbase API [GET]
+Get heartbeat for the cranchecks API [GET]
 
 This path redirects to `/heartbeat`
 
@@ -229,35 +212,28 @@ Get heartbeat for the Fishbase API [GET]
     + [Headers](#response-headers)
     + Body
     ```
-            [{
-                "routes": [
-                    "/docs/:table?",
-                    "/heartbeat",
-                    "/mysqlping",
-                    "/comnames?<params>",
-                    "/countref?<params>",
-                    "/country?<params>",
-                    "/diet?<params>",
-                    "/ecology?<params>",
-                    "/ecosystem?<params>",
-                    ...
-                ]
-            }]
+    {
+      "routes": [
+        "/docs (GET)",
+        "/heartbeat (GET)",
+        "/pkgs (GET)",
+        "/pkgs/:pkg_name: (GET)"
+      ]
+    }
     ```
 
 ### docs
 
 > GET [/docs]
 
-Get brief description of each table in the Fishbase database. 
+Redirects to docs at github repo
 
-+ Response 200 (application/json)
++ Response 301
     + [Headers](#response-headers)
-    + [Body](#response-bodies)
 
 ### repos
 
-> GET [/repos]
+> GET [/pkgs]
 
 Get all repositories.
 
@@ -265,21 +241,11 @@ Get all repositories.
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
-### repo by name
+### single pkg by name
 
-> GET [/repos/{repo_name}]
+> GET [/pkgs/{package_name}]
 
-Get repository by name. This route by default gives data from the latest collection of all data sources. See `/repos/{name}/history` to get historical data.
-
-+ Response 200 (application/json)
-    + [Headers](#response-headers)
-    + [Body](#response-bodies)
-
-### historical data by repo by name
-
-> GET [/repos/{repo_name}/history]
-
-Get historical data from repository by name. This route default gives historical data from the latest collection going back through time. Default limit is 10 (that is, 10 days).
+Get package by name.
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
