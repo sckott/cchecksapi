@@ -6,6 +6,7 @@ require 'yaml'
 require "mongo"
 
 mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+#mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = mongo[:checks]
 
 class CCAPI < Sinatra::Application
@@ -86,8 +87,8 @@ class CCAPI < Sinatra::Application
   get '/pkgs/?' do
     headers_get
     begin
-      lim = params[:limit] || 10
-      off = params[:offset] || 0
+      lim = (params[:limit] || 10).to_i
+      off = (params[:offset] || 0).to_i
       d = $cks.find({}, {"limit" => lim, "skip" => off})
       dat = d.to_a
       raise Exception.new('no results found') if d.nil?
