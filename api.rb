@@ -89,6 +89,7 @@ class CCAPI < Sinatra::Application
     begin
       lim = (params[:limit] || 10).to_i
       off = (params[:offset] || 0).to_i
+      raise Exception.new('limit too large (max 1000)') unless lim <= 1000
       d = $cks.find({}, {"limit" => lim, "skip" => off})
       dat = d.to_a
       raise Exception.new('no results found') if d.nil?
@@ -102,7 +103,6 @@ class CCAPI < Sinatra::Application
   get '/pkgs/:name/?' do
     headers_get
     begin
-      #d = $cdb.get(params[:name])
       d = $cks.find({ package: params[:name] }).first
       raise Exception.new('no results found') if d.nil?
       { error: nil, data: d }.to_json
