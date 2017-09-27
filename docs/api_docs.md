@@ -10,14 +10,12 @@
 * [Authentication](#authentication)
 * [Parameters](#parameters)
     * [Common parameters](#common-parameters)
-    * [Additional parameters](#additional-parameters)
 * [Routes](#routes)
     * [root](#root)
     * [heartbeat](#heartbeat)
     * [docs](#docs)
-    * [repos](#repos)
-    * [repo by name](#repo-by-name)
-    * [historical data by repo by name](#historical-data-by-repo-by-name)
+    * [pkgs](#pkgs)
+    * [pkg by name](#pkg-by-name)
 
 ## Base URL
 
@@ -231,7 +229,7 @@ Redirects to docs at github repo
 + Response 301
     + [Headers](#response-headers)
 
-### repos
+### pkgs
 
 > GET [/pkgs]
 
@@ -241,7 +239,7 @@ Get all repositories.
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
-### single pkg by name
+### pkg by name
 
 > GET [/pkgs/{package_name}]
 
