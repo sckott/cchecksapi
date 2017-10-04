@@ -1,9 +1,9 @@
 CRAN Check Results API
 ======================
 
-Right now, this only concerns itself with rOpenSci packages on CRAN - but can easily add all pkgs on CRAN if there's a need.
+The was originally just rOpenSci packages, but is now all packages on CRAN.
 
-Base URL: https://cranchecks.info
+Base URL: <https://cranchecks.info>
 
 tech:
 
@@ -12,7 +12,9 @@ tech:
 * http requests: faraday
 * database: mongodb
 * server: caddy
-* container: all wrapped up in docker
+* container: all wrapped up in docker (docker-compose)
+
+Uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages.
 
 ## routes
 
