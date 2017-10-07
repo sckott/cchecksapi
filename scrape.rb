@@ -3,8 +3,8 @@ require "multi_json"
 require "oga"
 require "mongo"
 
-$mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-# $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+#$mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+$mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all
@@ -23,7 +23,7 @@ end
 
 def prep_mongo(x)
   x.merge!({'_id' => x["package"]})
-  x.merge!({'date_created' => DateTime.now.to_time.utc})
+  x.merge!({'date_updated' => DateTime.now.to_time.utc})
   return x
 end
 
@@ -60,11 +60,18 @@ def scrape_pkg(pkg)
     res[i].merge!({"check_url" => hrefs[i]})
   end
 
-  return {"package" => pkg, "checks" => res}
+  # lowercase all keys
+  res.map { |a| a.keys.map { |k| a[k.downcase] = a.delete k } }
+  # strip all whitespace
+  res.map { |a| a.map { |k, v| a[k] = v.strip } }
+  # numbers are numbers
+  res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } }
+
+  return {"package" => pkg, "url" => base_url % pkg, "checks" => res}
 end
 
 def fetch_urls(foo)
-  tmp = foo.map { |e| e.xpath('./td//a[contains(.//span, "OK") or contains(.//span, "ERROR")]') }
+  tmp = foo.map { |e| e.xpath('./td//a[contains(., "OK") or contains(., "ERROR") or contains(., "NOTE")]') }
   tmp = tmp.keep_if { |e| e.length > 0 }
   xx = tmp.map { |e| e.attribute('href')[0].text }
   return xx
