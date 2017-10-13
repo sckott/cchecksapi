@@ -18,6 +18,7 @@
     * [package by name](#package-by-name)
     * [maintainers](#maintainers)
     * [maintainer by email](#maintainer-by-email)
+* [Examples](#examples)
 
 ## Base URL
 
@@ -270,3 +271,126 @@ Get maintainer summary by email.
 + Response 200 (application/json)
     + [Headers](#response-headers)
     + [Body](#response-bodies)
+
+
+## Examples
+
+### /heartbeat
+
+```sh
+curl https://cranchecks.info/heartbeat | jq .
+```
+
+```json
+{
+  "routes": [
+    "/docs (GET)",
+    "/heartbeat (GET)",
+    "/pkgs (GET)",
+    "/pkgs/:pkg_name: (GET)"
+  ]
+}
+```
+
+### /pkgs
+
+```sh
+curl https://cranchecks.info/pkgs | jq .
+```
+
+```json
+{
+  "found": 252,
+  "count": 10,
+  "offset": 0,
+  "error": null,
+  "data": [
+    {
+      "_id": "AntWeb",
+      "_rev": "1-9a936a55e375a94c648b6c5b846205c9",
+      "package": "AntWeb",
+      "checks": [
+        {
+          "Flavor": "r-devel-linux-x86_64-debian-clang ",
+          "Version": "0.7 ",
+          "Tinstall": "1.03 ",
+          "Tcheck": "15.32 ",
+          "Ttotal": "16.35 ",
+          "Status": "NOTE"
+...
+```
+
+### /pkgs/:pkg_name
+
+```sh
+curl https://cranchecks.info/pkgs/solrium | jq .
+```
+
+```json
+{
+  "error": null,
+  "data": {
+    "_id": "solrium",
+    "package": "solrium",
+    "checks": [
+      {
+        "Flavor": "r-devel-linux-x86_64-debian-clang ",
+        "Version": "0.4.0 ",
+        "Tinstall": "1.89 ",
+        "Tcheck": "34.40 ",
+        "Ttotal": "36.29 ",
+        "Status": "OK",
+        "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-clang/solrium-00check.html"
+      },
+...
+```
+
+### /maintainers
+
+```sh
+curl https://cranchecks.info/maintainers | jq .
+```
+
+```json
+{
+  "found": 6732,
+  "count": 10,
+  "offset": null,
+  "error": null,
+  "data": [
+    {
+      "_id": "00gerhard_at_gmail.com",
+      "email": "00gerhard_at_gmail.com",
+      "name": "Daniel Gerhard",
+      "url": "https://cran.rstudio.com/web/checks/check_results_00gerhard_at_gmail.com.html",
+      "table": [
+        {
+          "package": "goric",
+          "ok": 12
+        },
+...
+```
+
+### /maintainers/:email
+
+```sh
+curl https://cranchecks.info/maintainers/csardi.gabor_at_gmail.com | jq .
+```
+
+```json
+{
+  "error": null,
+  "data": {
+    "_id": "csardi.gabor_at_gmail.com",
+    "email": "csardi.gabor_at_gmail.com",
+    "name": "Gábor Csárdi",
+    "url": "https://cran.rstudio.com/web/checks/check_results_csardi.gabor_at_gmail.com.html",
+    "table": [
+      {
+        "package": "clisymbols",
+        "error": 0,
+        "note": 0,
+        "ok": 12
+      },
+...
+```
