@@ -186,7 +186,7 @@ We don't use any. Cheers :)
 + offset (integer, optional) Record `number` to start at.
     + Default: `0`
 
-Above parameters can be used only on `/pkgs`
+Above parameters can be used only on `/pkgs` and `/maintainers`
 
 ## Routes
 
@@ -200,7 +200,7 @@ This path redirects to `/heartbeat`
 
 + Response 302 (application/json)
 
-        See `/heartbeat`
+
 
 ### heartbeat
 
