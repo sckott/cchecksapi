@@ -1,4 +1,4 @@
-# cran checks API
+# CRAN checks API
 
 ## Contents
 
@@ -14,8 +14,10 @@
     * [root](#root)
     * [heartbeat](#heartbeat)
     * [docs](#docs)
-    * [pkgs](#pkgs)
-    * [pkg by name](#pkg-by-name)
+    * [packages](#pkgs)
+    * [package by name](#package-by-name)
+    * [maintainers](#maintainers)
+    * [maintainer by email](#maintainer-by-email)
 
 ## Base URL
 
@@ -239,11 +241,31 @@ Get all repositories.
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
-### pkg by name
+### package by name
 
 > GET [/pkgs/{package_name}]
 
 Get package by name.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### maintainers
+
+> GET [/maintainers]
+
+Get all maintainers.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### maintainer summary by email
+
+> GET [/maintainers/{maintainer_email}]
+
+Get maintainer summary by email.
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
