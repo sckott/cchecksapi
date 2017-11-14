@@ -90,6 +90,15 @@ class CCAPI < Sinatra::Application
   get '/pkgs/?' do
     headers_get
     begin
+      %i(limit offset).each do |p|
+        unless params[p].nil?
+          begin
+            params[p] = Integer(params[p])
+          rescue ArgumentError
+            raise Exception.new("#{p.to_s} is not an integer")
+          end
+        end
+      end
       lim = (params[:limit] || 10).to_i
       off = (params[:offset] || 0).to_i
       raise Exception.new('limit too large (max 1000)') unless lim <= 1000
@@ -117,6 +126,15 @@ class CCAPI < Sinatra::Application
   get '/maintainers/?' do
     headers_get
     begin
+      %i(limit offset).each do |p|
+        unless params[p].nil?
+          begin
+            params[p] = Integer(params[p])
+          rescue ArgumentError
+            raise Exception.new("#{p.to_s} is not an integer")
+          end
+        end
+      end
       lim = (params[:limit] || 10).to_i
       off = (params[:offset] || 0).to_i
       raise Exception.new('limit too large (max 1000)') unless lim <= 1000
