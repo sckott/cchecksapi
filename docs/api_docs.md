@@ -22,7 +22,7 @@
 
 ## Base URL
 
-<https://cranchecks.info>
+<https://cranchecks.info/>
 
 ## HTTP methods
 
@@ -278,7 +278,7 @@ Get maintainer summary by email.
 ### /heartbeat
 
 ```sh
-curl https://cranchecks.info/heartbeat | jq .
+curl https://cranchecks.info/heartbeat/ | jq .
 ```
 
 ```json
@@ -295,7 +295,7 @@ curl https://cranchecks.info/heartbeat | jq .
 ### /pkgs
 
 ```sh
-curl https://cranchecks.info/pkgs | jq .
+curl https://cranchecks.info/pkgs/ | jq .
 ```
 
 ```json
@@ -323,7 +323,7 @@ curl https://cranchecks.info/pkgs | jq .
 ### /pkgs/:pkg_name
 
 ```sh
-curl https://cranchecks.info/pkgs/solrium | jq .
+curl https://cranchecks.info/pkgs/solrium/ | jq .
 ```
 
 ```json
@@ -348,7 +348,7 @@ curl https://cranchecks.info/pkgs/solrium | jq .
 ### /maintainers
 
 ```sh
-curl https://cranchecks.info/maintainers | jq .
+curl https://cranchecks.info/maintainers/ | jq .
 ```
 
 ```json

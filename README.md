@@ -3,7 +3,7 @@ CRAN Check Results API
 
 The was originally just rOpenSci packages, but is now all packages on CRAN.
 
-Base URL: <https://cranchecks.info>
+Base URL: <https://cranchecks.info/>
 
 [API Docs](docs/api_docs.md)
 
