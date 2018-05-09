@@ -94,15 +94,24 @@ def cran_packages
     f.adapter Faraday.default_adapter
   end
 
-  def collect_crandb(start_key = "")
-    x = $crandb_conn.get "/-/desc", { :limit => 6000, :start_key => start_key }
+  def collect_crandb(start_key = nil)
+    x = $crandb_conn.get "/-/desc", { :limit => 1000, :start_key => start_key }.compact
     out = MultiJson.load(x.body)
     return out.keys.uniq
   end
 
-  res = []
-  ["", "mljar"].each do |z|
-    res << collect_crandb(start_key = sprintf("\"%s\"", z))
+  out = []
+  done = false
+  sk = nil
+  while !done
+    if !sk.nil?
+      sk = sprintf("\"%s\"", sk)
+    end
+    puts sk
+    res = collect_crandb(start_key = sk)
+    out << res unless res.include?('reason')
+    done = res.include?('reason') || res.length == 1
+    sk = res.last
   end
-  return res.flatten.uniq
+  return out.flatten.uniq
 end
