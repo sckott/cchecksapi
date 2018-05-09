@@ -3,8 +3,8 @@ require "multi_json"
 require "oga"
 require "mongo"
 
-$mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-# $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+# $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+$mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all
@@ -105,29 +105,11 @@ def ro_packages
 end
 
 def cran_packages
-  crandb_base = "https://crandb.r-pkg.org"
-  $crandb_conn = Faraday.new(:url => crandb_base) do |f|
+  $crandb_conn = Faraday.new(:url => "https://crandb.r-pkg.org") do |f|
     f.adapter Faraday.default_adapter
   end
-
-  def collect_crandb(start_key = nil)
-    x = $crandb_conn.get "/-/desc", { :limit => 1000, :start_key => start_key }.compact
-    out = MultiJson.load(x.body)
-    return out.keys.uniq
-  end
-
-  out = []
-  done = false
-  sk = nil
-  while !done
-    if !sk.nil?
-      sk = sprintf("\"%s\"", sk)
-    end
-    puts sk
-    res = collect_crandb(start_key = sk)
-    out << res unless res.include?('reason')
-    done = res.include?('reason') || res.length == 1
-    sk = res.last
-  end
-  return out.flatten.uniq
+  # new
+  x = $crandb_conn.get "/-/pkgnames";
+  out = MultiJson.load(x.body)
+  return out.keys.uniq
 end
