@@ -22,6 +22,8 @@ class CCAPI < Sinatra::Application
   #   # p JSON.parse(request.body.read)
   # end
 
+  # before(%r{/(.+)/}) { |path| redirect(path, 301) }
+
   ## configuration
   configure do
     set :raise_errors, false
@@ -63,17 +65,17 @@ class CCAPI < Sinatra::Application
   # end
 
   ## routes
-  get '/?' do
+  get '/' do
     headers_get
     redirect '/heartbeat'
   end
 
-  get '/docs/?' do
+  get '/docs' do
     headers_get
     redirect 'https://github.com/ropensci/cchecksapi/blob/master/docs/api_docs.md', 301
   end
 
-  get "/heartbeat/?" do
+  get "/heartbeat" do
     headers_get
     $ip = request.ip
     return JSON.pretty_generate({
@@ -88,7 +90,7 @@ class CCAPI < Sinatra::Application
     })
   end
 
-  get '/pkgs/?' do
+  get '/pkgs' do
     headers_get
     begin
       %i(limit offset).each do |p|
@@ -113,7 +115,7 @@ class CCAPI < Sinatra::Application
     end
   end
 
-  get '/pkgs/:name/?' do
+  get '/pkgs/:name' do
     headers_get
     begin
       d = $cks.find({ package: params[:name] }).first
@@ -124,7 +126,7 @@ class CCAPI < Sinatra::Application
     end
   end
 
-  get '/maintainers/?' do
+  get '/maintainers' do
     headers_get
     begin
       %i(limit offset).each do |p|
@@ -149,7 +151,7 @@ class CCAPI < Sinatra::Application
     end
   end
 
-  get '/maintainers/:email/?' do
+  get '/maintainers/:email' do
     headers_get
     begin
       d = $maint.find({ email: params[:email] }).first
