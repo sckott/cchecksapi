@@ -5,8 +5,6 @@ require "sinatra/multi_route"
 require 'yaml'
 require "mongo"
 
-configure { set :server, :puma }
-
 mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 # mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = mongo[:checks]
@@ -31,6 +29,7 @@ class CCAPI < Sinatra::Application
     set :raise_errors, false
     set :show_exceptions, false
     set :strict_paths, false
+    set :server, :puma
   end
 
   # halt: error helpers
