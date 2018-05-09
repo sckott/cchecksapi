@@ -5,7 +5,6 @@ desc "load cran checks results into mongo"
 task :loadmongo do
   begin
     scrape_all()
-    scrape_all_maintainers()
   rescue Exception => e
     raise e
   end
