@@ -27,6 +27,12 @@ def prep_mongo(x)
   return x
 end
 
+class Array
+  def count_em(x)
+    return self.find_all { |z| z == x }.count
+  end
+end
+
 # def store_db(x)
 #   x.merge!({'_id' => x["package"]})
 #   x.merge!({'date_created' => DateTime.now.to_time.utc})
@@ -67,7 +73,17 @@ def scrape_pkg(pkg)
   # numbers are numbers
   res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } }
 
-  return {"package" => pkg, "url" => base_url % pkg, "checks" => res}
+  # make summary
+  stats = res.map { |a| a['status'] }.map(&:downcase)
+  summary = {"summary" => {
+    "any" => stats.count_em("ok") != stats.length,
+    "ok" => stats.count_em("ok"), 
+    "note" => stats.count_em("note"), 
+    "warning" => stats.count_em("warning"), 
+    "error"=> stats.count_em("error")}
+  }
+
+  return {"package" => pkg, "url" => base_url % pkg, "summary" => summary, "checks" => res}
 end
 
 def fetch_urls(foo)
