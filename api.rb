@@ -22,8 +22,6 @@ class CCAPI < Sinatra::Application
   #   # p JSON.parse(request.body.read)
   # end
 
-  # before(%r{/(.+)/}) { |path| redirect(path, 301) }
-
   ## configuration
   configure do
     set :raise_errors, false
@@ -54,16 +52,6 @@ class CCAPI < Sinatra::Application
       cache_control :public, :must_revalidate, :max_age => 60
     end
   end
-
-  # handler - redirects any /foo -> /foo/
-  #  - if has any query params, passes to handler as before
-  # get %r{(/.*[^\/])$} do
-  #   if request.query_string == "" or request.query_string.nil?
-  #     redirect request.script_name + "#{params[:captures].first}/"
-  #   else
-  #     pass
-  #   end
-  # end
 
   ## routes
   get '/' do
