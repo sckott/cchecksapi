@@ -2,5 +2,7 @@
 *.key
 scottnotes.md
 notes.md
+notes_notifications.md
 server_notes.md
 notes_mongoservererror.txt
+.httr-oauth

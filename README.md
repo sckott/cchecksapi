@@ -16,4 +16,3 @@ tech:
 * server: caddy
 * container: all wrapped up in docker (docker-compose)
 * uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages
-
