@@ -12,3 +12,4 @@ api:
     - "8834:8834"
   links:
     - mongo
+  restart: always
