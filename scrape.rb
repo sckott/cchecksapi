@@ -3,8 +3,8 @@ require "multi_json"
 require "oga"
 require "mongo"
 
-# $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-$mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+$mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+# $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all
@@ -75,12 +75,12 @@ def scrape_pkg(pkg)
 
   # make summary
   stats = res.map { |a| a['status'] }.map(&:downcase)
-  summary = {"summary" => {
+  summary = {
     "any" => stats.count_em("ok") != stats.length,
     "ok" => stats.count_em("ok"), 
     "note" => stats.count_em("note"), 
     "warning" => stats.count_em("warning"), 
-    "error"=> stats.count_em("error")}
+    "error"=> stats.count_em("error")
   }
 
   return {"package" => pkg, "url" => base_url % pkg, "summary" => summary, "checks" => res}
