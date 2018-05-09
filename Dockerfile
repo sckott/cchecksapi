@@ -6,4 +6,4 @@ RUN cd /opt/sinatra \
 EXPOSE 8834
 
 WORKDIR /opt/sinatra
-CMD ["unicorn", "-d", "-c", "unicorn.conf"]
+CMD ["puma", "-d", "-C", "puma.rb"]

@@ -5,8 +5,10 @@ require "sinatra/multi_route"
 require 'yaml'
 require "mongo"
 
-mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-# mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+configure { set :server, :puma }
+
+# mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = mongo[:checks]
 $maint = mongo[:maintainer]
 
