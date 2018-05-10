@@ -1,7 +1,12 @@
 require "faraday"
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
+require "parallel"
 require "multi_json"
 require "oga"
 require "mongo"
+
+require_relative 'utils'
 
 $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 # $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
@@ -9,10 +14,8 @@ $maint = $mongo[:maintainer]
 
 def scrape_all_maintainers
   maints = cran_maintainers;
-  out = []
-  maints.each do |x|
-    out << scrape_maintainer(x)
-  end
+  resp_onses = async_get(maints);
+  out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_maintainer_body(e) };
   if $maint.count > 0
     $maint.drop
     $maint = $mongo[:maintainer]
@@ -26,20 +29,14 @@ def prep_mongo_(x)
   return x
 end
 
-# scrape_maintainer(email = "a.barnett_at_qut.edu.au") # exists
-# scrape_maintainer(email = "aba44_at_pitt.edu") # exists
-# scrape_maintainer(email = "things_at_stuff.com") # doesn't exist
-def scrape_maintainer(email)
+def scrape_maintainer_body(z)
   base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
-  x = Faraday.new(:url => base_url % email) do |f|
-    f.adapter Faraday.default_adapter
-  end
-  res = x.get;
-  if !res.success?
+  email = z.to_hash[:url].to_s.sub('https://cran.rstudio.com/web/checks/check_results_', '').sub('.html', '')
+  if !z.success?
     return {"email" => email, "url" => nil, "table" => nil, "packages" => nil}
   end
 
-  html = Oga.parse_html(res.body.force_encoding 'UTF-8')
+  html = Oga.parse_html(z.body.force_encoding 'UTF-8')
   title = html.xpath('//title').text
   maint_name = title.split('Maintainer')[1].strip.split("<")[0].gsub(/[[:space:]]$/, "")
 
