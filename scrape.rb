@@ -1,24 +1,49 @@
 require "faraday"
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
 require "multi_json"
 require "oga"
 require "mongo"
+require "parallel"
 
-$mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-# $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+# $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+$mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all
-  # pkgs = ro_packages;
   pkgs = cran_packages;
-  out = []
-  pkgs.each do |x|
-    out << scrape_pkg(x)
-  end
+  resp_onses = async_get(pkgs);
+  out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_pkg_body(e) };
+  # out = []
+  # resp_onses.each do |x|
+  #   out << scrape_pkg_body(x)
+  # end
   if $cks.count > 0
     $cks.drop
     $cks = $mongo[:checks]
   end
   $cks.insert_many(out.map { |e| prep_mongo(e) })
+end
+
+def async_get(pkgs)
+  conn = Faraday.new(:url => "https://cran.rstudio.com") do |faraday|
+    faraday.adapter :typhoeus
+  end
+
+  urlx = pkgs.map {|z| '/web/checks/check_results_%s.html' % z}
+  reqs = []
+  urlx.each_slice(100) do |urlchunk|
+    responses = []
+    conn.in_parallel do
+      urlchunk.each do |z|
+        responses << conn.get(z)
+      end
+    end
+
+    reqs << responses.keep_if { |r| r.status == 200 }
+  end
+  # return array of Faraday::Response objects
+  return reqs.flatten 
 end
 
 def prep_mongo(x)
@@ -39,19 +64,14 @@ end
 #   $cdb.save_doc(x)
 # end
 
-# scrape_pkg(pkg = "lawn") # exists
-# scrape_pkg(pkg = "alm") # doesn't exist
-def scrape_pkg(pkg)
+def scrape_pkg_body(z)
   base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
-  x = Faraday.new(:url => base_url % pkg) do |f|
-    f.adapter Faraday.default_adapter
-  end
-  res = x.get
-  if !res.success?
+  pkg = z.to_hash[:url].to_s.sub('https://cran.rstudio.com/web/checks/check_results_', '').sub('.html', '')
+  if !z.success?
     return {"package" => pkg, "checks" => nil}
   end
 
-  html = Oga.parse_html(res.body)
+  html = Oga.parse_html(z.body)
   tr = html.xpath('//table//tr');
   rws = tr.map { |e| e.xpath('./td//text()').map { |w| w.text }  }.keep_if { |a| a.length > 0 }
   rws = rws.map { |e| e.map { |f| f.lstrip } }
@@ -85,6 +105,53 @@ def scrape_pkg(pkg)
 
   return {"package" => pkg, "url" => base_url % pkg, "summary" => summary, "checks" => res}
 end
+
+# scrape_pkg(pkg = "lawn") # exists
+# scrape_pkg(pkg = "alm") # doesn't exist
+# def scrape_pkg(pkg)
+#   base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
+#   x = Faraday.new(:url => base_url % pkg) do |f|
+#     f.adapter Faraday.default_adapter
+#   end
+#   res = x.get
+#   if !res.success?
+#     return {"package" => pkg, "checks" => nil}
+#   end
+
+#   html = Oga.parse_html(res.body)
+#   tr = html.xpath('//table//tr');
+#   rws = tr.map { |e| e.xpath('./td//text()').map { |w| w.text }  }.keep_if { |a| a.length > 0 }
+#   rws = rws.map { |e| e.map { |f| f.lstrip } }
+#   rws = rws.map { |e| [e[2], e[3], e[4], e[5], e[6], e[9]] }
+#   nms = tr[0].text.split(' ')
+#   nms.pop
+#   res = rws.map { |e| Hash[nms.zip(e)] }
+
+#   # get urls and join to dataset
+#   hrefs = fetch_urls(tr)
+#   hrefs.each_with_index do |val, i|
+#     res[i].merge!({"check_url" => hrefs[i]})
+#   end
+
+#   # lowercase all keys
+#   res.map { |a| a.keys.map { |k| a[k.downcase] = a.delete k } }
+#   # strip all whitespace
+#   res.map { |a| a.map { |k, v| a[k] = v.strip } }
+#   # numbers are numbers
+#   res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } }
+
+#   # make summary
+#   stats = res.map { |a| a['status'] }.map(&:downcase)
+#   summary = {
+#     "any" => stats.count_em("ok") != stats.length,
+#     "ok" => stats.count_em("ok"), 
+#     "note" => stats.count_em("note"), 
+#     "warning" => stats.count_em("warning"), 
+#     "error"=> stats.count_em("error")
+#   }
+
+#   return {"package" => pkg, "url" => base_url % pkg, "summary" => summary, "checks" => res}
+# end
 
 def fetch_urls(foo)
   tmp = foo.map { |e| e.xpath('./td//a[contains(., "OK") or contains(., "ERROR") or contains(., "NOTE")]') }

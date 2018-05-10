@@ -15,6 +15,7 @@ GEM
     oga (2.11)
       ast
       ruby-ll (~> 2.1)
+    parallel (1.12.1)
     puma (3.11.4)
     rack (2.0.5)
     rack-protection (2.0.1)
@@ -45,6 +46,7 @@ DEPENDENCIES
   mongo (~> 2.4, >= 2.4.3)
   multi_json (~> 1.12, >= 1.12.2)
   oga (~> 2.11)
+  parallel (~> 1.12, >= 1.12.1)
   puma (~> 3.11, >= 3.11.4)
   rake (~> 12.1.0)
   sinatra (~> 2.0.1)
