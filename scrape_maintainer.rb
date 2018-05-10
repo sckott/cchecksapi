@@ -1,7 +1,6 @@
 require "faraday"
 require 'typhoeus'
 require 'typhoeus/adapters/faraday'
-require "parallel"
 require "multi_json"
 require "oga"
 require "mongo"
@@ -13,13 +12,13 @@ $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.
 $maint = $mongo[:maintainer]
 
 def scrape_all_maintainers
-  p "getting crain maintainers"
   maints = cran_maintainers;
-  p "scraping each maintainer page"
   resp_onses = async_get(maints);
-  p "processing each html page"
-  out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_maintainer_body(e) };
-  p "updating mongodb"
+  # out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_maintainer_body(e) };
+  out = []
+  resp_onses.each do |x|
+    out << scrape_maintainer_body(x)
+  end
   if $maint.count > 0
     $maint.drop
     $maint = $mongo[:maintainer]
