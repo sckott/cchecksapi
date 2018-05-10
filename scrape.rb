@@ -1,19 +1,21 @@
 require "faraday"
+require 'typhoeus'
+require 'typhoeus/adapters/faraday'
+require "parallel"
 require "multi_json"
 require "oga"
 require "mongo"
+
+require_relative 'utils'
 
 $mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 # $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all
-  # pkgs = ro_packages;
   pkgs = cran_packages;
-  out = []
-  pkgs.each do |x|
-    out << scrape_pkg(x)
-  end
+  resp_onses = async_get(pkgs);
+  out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_pkg_body(e) };
   if $cks.count > 0
     $cks.drop
     $cks = $mongo[:checks]
@@ -33,25 +35,14 @@ class Array
   end
 end
 
-# def store_db(x)
-#   x.merge!({'_id' => x["package"]})
-#   x.merge!({'date_created' => DateTime.now.to_time.utc})
-#   $cdb.save_doc(x)
-# end
-
-# scrape_pkg(pkg = "lawn") # exists
-# scrape_pkg(pkg = "alm") # doesn't exist
-def scrape_pkg(pkg)
+def scrape_pkg_body(z)
   base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
-  x = Faraday.new(:url => base_url % pkg) do |f|
-    f.adapter Faraday.default_adapter
-  end
-  res = x.get
-  if !res.success?
+  pkg = z.to_hash[:url].to_s.sub('https://cran.rstudio.com/web/checks/check_results_', '').sub('.html', '')
+  if !z.success?
     return {"package" => pkg, "checks" => nil}
   end
 
-  html = Oga.parse_html(res.body)
+  html = Oga.parse_html(z.body)
   tr = html.xpath('//table//tr');
   rws = tr.map { |e| e.xpath('./td//text()').map { |w| w.text }  }.keep_if { |a| a.length > 0 }
   rws = rws.map { |e| e.map { |f| f.lstrip } }
