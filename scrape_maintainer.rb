@@ -61,6 +61,14 @@ def scrape_maintainer_body(z)
     tab = out.map { |e| Hash[frow.zip(e)]  }
     tab.map { |a| a.keys.map { |k| a[k.downcase] = a.delete k } }
     tab.map { |a| a.map { |k, v| a[k] = v.to_i if k.match(/error|warn|note|ok/) } }
+    # fill with missing keys
+    fill_keys = {'error' => 0, 'warn' => 0, 'note' => 0, 'ok' => 0}
+    tab.map { |a| a.merge! fill_keys.select { |k| !a.keys.include? k } }
+    # add any key
+    tab.map { |a| a["any"] = a.count_any != 0 }
+    # sort keys
+    keys_sorted = ['package', 'any', 'ok', 'note', 'warn', 'error']
+    tab.map! { |a| keys_sorted.zip(a.values_at(*keys_sorted)).to_h }
   end
 
   # packages free text
@@ -80,6 +88,12 @@ def scrape_maintainer_body(z)
 
   return {"email" => email, "name" => maint_name, "url" => base_url % email,
     "table" => tab, "packages" => dat}
+end
+
+class Hash
+  def count_any
+    return self.slice('error', 'warn', 'note').values.sum
+  end
 end
 
 # cran_maintainers()
