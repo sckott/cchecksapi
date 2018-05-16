@@ -22,7 +22,7 @@ tech:
 * uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages
 * A cron job scrapes pkg specific data and maintainer level data once a day
 
-# examples
+## examples
 
 All pkgs from a maintainer that have any checks not passing
 
@@ -34,6 +34,12 @@ Similar but across all packages
 
 ```
 curl https://cranchecks.info/pkgs?limit=10 | jq '.data[] | select(.summary.any) | .package'
+```
+
+Packages that have error status checks
+
+```
+curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.error > 0) | .package'
 ```
 
 [cchecks]: https://github.com/ropenscilabs/cchecks
