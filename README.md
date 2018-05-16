@@ -24,6 +24,8 @@ tech:
 
 ## examples
 
+> you'll need curl (which you likely have), and jq (<https://stedolan.github.io/jq/>) which you may not have
+
 All pkgs from a maintainer that have any checks not passing
 
 ```
