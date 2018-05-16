@@ -5,6 +5,8 @@ require "sinatra/multi_route"
 require 'yaml'
 require "mongo"
 
+require_relative 'badges'
+
 mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 # mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = mongo[:checks]
@@ -24,8 +26,8 @@ class CCAPI < Sinatra::Application
 
   ## configuration
   configure do
-    set :raise_errors, false
-    set :show_exceptions, false
+    set :raise_errors, true
+    set :show_exceptions, true
     set :strict_paths, false
     set :server, :puma
   end
@@ -51,6 +53,13 @@ class CCAPI < Sinatra::Application
       headers "Access-Control-Allow-Origin" => "*"
       cache_control :public, :must_revalidate, :max_age => 60
     end
+
+    def badge_headers_get
+      fivemin = Time.at(Time.now.to_i + (5 * 60)).httpdate
+      headers 'Content-Type' => 'image/svg+xml; charset=utf-8'
+      headers 'Expires' => fivemin
+      headers 'Cache-Control' => 'max-age=300, public'
+    end
   end
 
   ## routes
@@ -74,7 +83,9 @@ class CCAPI < Sinatra::Application
         "/pkgs (GET)",
         "/pkgs/:pkg_name: (GET)",
         "/maintainers (GET)",
-        "/maintainers/:email: (GET)"
+        "/maintainers/:email: (GET)",
+        "/badges/:type/:package (GET)",
+        "/badges/:flavor/:package (GET)"
       ]
     })
   end
@@ -149,6 +160,22 @@ class CCAPI < Sinatra::Application
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
     end
+  end
+
+  get '/badges/:type/:package' do
+    badge_headers_get
+    type = params[:type]
+    package = params[:package]
+    d = $cks.find({ package: package }).first
+    do_badge(package, params, d)
+  end
+
+  get '/badges/flavor/:flavor/:package' do
+    badge_headers_get
+    flavor = params[:flavor]
+    package = params[:package]
+    d = $cks.find({ package: package }).first
+    do_badge_flavor(package, flavor, d)
   end
 
   # prevent some HTTP methods
