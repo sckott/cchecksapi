@@ -87,7 +87,6 @@ def make_badge(text, message, params)
   def_color = "blue" if message.downcase == "note"
   def_color = "yellow" if message.downcase == "warn"
   def_color = "red" if message == "Not OK"
-  def_color = "red" if message.downcase == "note"
   def_color = "red" if message.downcase == "error"
   color = params["color"] || def_color
   color = $svg_colors[color] || color
