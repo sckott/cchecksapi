@@ -1,4 +1,5 @@
 source "http://rubygems.org/"
+ruby "2.5.0"
 
 gem 'rake', '~> 12.1.0'
 gem 'faraday', '~> 0.11.0'
