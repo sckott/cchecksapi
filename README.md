@@ -48,8 +48,14 @@ curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.err
 
 ### package status summaries
 
-- `/badges/summary/:package` all okay? 
-- `/badges/worst/:package` worst result, error <- warn <- note 
+- `/badges/summary/:package` all okay?, no notes, warnings, or errors
+    - if any notes, warnings, or errors = `Not OK` (color:red)
+    - if NO notes, warnings, or errors = `OK` (color:green)
+- `/badges/worst/:package` worst result:
+    - if any errors = `ERROR` (color:red)
+    - if any warnings, and no errors = `WARN` (color:yellow)
+    - if any notes, and no errors or warnings = `NOTE` (color:blue)
+    - if no errors, warnings, or notes = `OK` (color:green)
 
 __NOT SUPPORTED YET__
 
@@ -74,6 +80,11 @@ __NOT SUPPORTED YET__
         - `oldrel`
         - `patched`
         - `release`
+
+With meanings:
+
+- if any notes, warnings, or errors = `Not OK` (color:red)
+- if NO notes, warnings, or errors = `OK` (color:green)
 
 ### Query parameters
 
