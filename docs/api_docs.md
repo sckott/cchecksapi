@@ -339,9 +339,9 @@ Get badge for CRAN checks summary by package name.
 
 ### badges worst
 
-> GET [/badges/summary/{package_name}]
+> GET [/badges/worst/{package_name}]
 
-Get badge for CRAN checks summary by package name.
+Get badge for CRAN checks worst result by package name.
 
 + Response 200 (image/svg+xml)
     + [Headers](#badge-response-headers)
@@ -349,9 +349,9 @@ Get badge for CRAN checks summary by package name.
 
 ### badges flavor
 
-> GET [/badges/summary/{package_name}]
+> GET [/badges/flavor/{flavor}/{package_name}]
 
-Get badge for CRAN checks summary by package name.
+Get badge for summary of CRAN checks by flavor and package name.
 
 + Response 200 (image/svg+xml)
     + [Headers](#badge-response-headers)
