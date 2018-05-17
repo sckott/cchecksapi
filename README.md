@@ -60,7 +60,7 @@ pkgs using the badges:
 
 - [rgbif](https://github.com/ropensci/rgbif#rgbif)
 - [wellknown](https://github.com/ropensci/wellknown#wellknown)
-
+- [taxize](https://github.com/ropensci/taxize#taxize)
 
 ### package status summaries
 
