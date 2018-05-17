@@ -70,7 +70,7 @@ def scrape_pkg_body(z)
     "any" => stats.count_em("ok") != stats.length,
     "ok" => stats.count_em("ok"), 
     "note" => stats.count_em("note"), 
-    "warn" => stats.count_em("warning"), 
+    "warn" => stats.count_em("warn"), 
     "error"=> stats.count_em("error")
   }
 

@@ -28,20 +28,85 @@ tech:
 
 All pkgs from a maintainer that have any checks not passing
 
-```
+```sh
 curl https://cranchecks.info/maintainers/csardi.gabor_at_gmail.com | jq '.data.table[] | select(.any) | .package'
 ```
 
 Similar but across all packages
 
-```
+```sh
 curl https://cranchecks.info/pkgs?limit=10 | jq '.data[] | select(.summary.any) | .package'
 ```
 
 Packages that have error status checks
 
-```
+```sh
 curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.error > 0) | .package'
 ```
 
+## Badges
+
+### package status summaries
+
+- `/badges/summary/:package` all okay?, no notes, warnings, or errors
+    - if any notes, warnings, or errors = `Not OK` (color:red)
+    - if NO notes, warnings, or errors = `OK` (color:green)
+- `/badges/worst/:package` worst result:
+    - if any errors = `ERROR` (color:red)
+    - if any warnings, and no errors = `WARN` (color:yellow)
+    - if any notes, and no errors or warnings = `NOTE` (color:blue)
+    - if no errors, warnings, or notes = `OK` (color:green)
+
+__NOT SUPPORTED YET__
+
+- `/badges/noerrors/:package` no errors? but could have warnings or notes 
+- `/badges/nowarns/:package` no warns? no errors, no warnings, but could have notes
+- `/badges/nonotes/:package` no notes? no errors, no warnings, and no notes
+
+### per flavor
+
+- `/badges/flavor/:flavor/:package` flavor + package, where flavors are any one of:
+
+    operating systems 
+
+        - `linux`
+        - `windows`
+        - `osx`
+        - `solaris`
+
+    R versions
+
+        - `devel`
+        - `oldrel`
+        - `patched`
+        - `release`
+
+With meanings:
+
+- if any notes, warnings, or errors = `Not OK` (color:red)
+- if NO notes, warnings, or errors = `OK` (color:green)
+
+### Query parameters
+
+- `ignore`: if `true`, ignore any `NOTE`'s and get a green `OK` badge. supported by `/badges/summary` and `/badges/flavor`
+
+### examples
+
+both badges routes
+
+![](svgs/unknown.svg)
+
+package summary route
+
+![](svgs/ok.svg)
+![](svgs/notok.svg)
+
+flavor route
+
+![](svgs/note.svg)
+![](svgs/warn.svg)
+![](svgs/error.svg)
+
 [cchecks]: https://github.com/ropenscilabs/cchecks
+
+
