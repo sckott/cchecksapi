@@ -58,10 +58,10 @@ class CCAPI < Sinatra::Application
 
     def badge_headers_get
       fivemin = Time.at(Time.now.to_i + (5 * 60)).httpdate
-      sec = Time.at(Time.now.to_i + 1).httpdate
+      # sec = Time.at(Time.now.to_i + 1).httpdate
       headers 'Content-Type' => 'image/svg+xml; charset=utf-8'
-      # headers 'Expires' => fivemin
-      headers 'Expires' => sec
+      headers 'Expires' => fivemin
+      # headers 'Expires' => sec
       headers 'Cache-Control' => 'max-age=300, public'
     end
   end
