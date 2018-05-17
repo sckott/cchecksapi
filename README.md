@@ -46,19 +46,40 @@ curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.err
 
 ## Badges
 
-package status summaries
+### package status summaries
 
-- `/badges/clean/:package` all okay? 
+- `/badges/summary/:package` all okay? 
 - `/badges/worst/:package` worst result, error <- warn <- note 
+
+__NOT SUPPORTED YET__
+
 - `/badges/noerrors/:package` no errors? but could have warnings or notes 
-- `/badges/nowarns/:package` no warns? no errors, no warnings, but could have notes 
+- `/badges/nowarns/:package` no warns? no errors, no warnings, but could have notes
 - `/badges/nonotes/:package` no notes? no errors, no warnings, and no notes
 
-per flavor
+### per flavor
 
-- `/badges/flavor/:flavor/:package` flavor + package, e.g., `r-devel-linux-x86_64-fedora-gcc`
+- `/badges/flavor/:flavor/:package` flavor + package, where flavors are any one of:
 
-examples:
+    operating systems 
+
+        - `linux`
+        - `windows`
+        - `osx`
+        - `solaris`
+
+    R versions
+
+        - `devel`
+        - `oldrel`
+        - `patched`
+        - `release`
+
+### Query parameters
+
+- `ignore`: if `true`, ignore any `NOTE`'s and get a green `OK` badge. supported by `/badges/summary` and `/badges/flavor`
+
+### examples
 
 both badges routes
 
