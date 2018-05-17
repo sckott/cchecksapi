@@ -6,6 +6,7 @@ require 'yaml'
 require "mongo"
 
 require_relative 'badges'
+require_relative 'funs'
 
 mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
 # mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
@@ -56,8 +57,10 @@ class CCAPI < Sinatra::Application
 
     def badge_headers_get
       fivemin = Time.at(Time.now.to_i + (5 * 60)).httpdate
+      sec = Time.at(Time.now.to_i + 1).httpdate
       headers 'Content-Type' => 'image/svg+xml; charset=utf-8'
-      headers 'Expires' => fivemin
+      # headers 'Expires' => fivemin
+      headers 'Expires' => sec
       headers 'Cache-Control' => 'max-age=300, public'
     end
   end
@@ -163,19 +166,29 @@ class CCAPI < Sinatra::Application
   end
 
   get '/badges/:type/:package' do
-    badge_headers_get
     type = params[:type]
     package = params[:package]
     d = $cks.find({ package: package }).first
-    do_badge(package, params, d)
+    if type == "summary"
+      badge_headers_get
+      do_badge(package, params, d)
+    elsif type == "worst"
+      badge_headers_get
+      do_badge_worst(package, params, d)
+    else
+      mssg = "we only support type=summary|worst"
+      headers_get
+      halt 400, { error: { message: mssg }, data: nil }.to_json
+    end
   end
 
   get '/badges/flavor/:flavor/:package' do
     badge_headers_get
     flavor = params[:flavor]
     package = params[:package]
+    ignore = as_bool(params[:ignore])
     d = $cks.find({ package: package }).first
-    do_badge_flavor(package, flavor, d)
+    do_badge_flavor(package, flavor, ignore, d)
   end
 
   # prevent some HTTP methods
