@@ -46,6 +46,22 @@ curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.err
 
 ## Badges
 
+markdown egs to use in your README
+
+linking to cran checks page (likely want to use `cran.r-project.org` url since cran check will complain about a different mirror's base url)
+
+[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cran.r-project.org/web/checks/check_results_reshape.html) -> `[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cran.r-project.org/web/checks/check_results_reshape.html)`
+
+Or maybe link to JSON response for this API
+
+[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cranchecks.info/pkgs/reshape) -> `[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cranchecks.info/pkgs/reshape)`
+
+pkgs using the badges:
+
+- [rgbif](https://github.com/ropensci/rgbif#rgbif)
+- [wellknown](https://github.com/ropensci/wellknown#wellknown)
+
+
 ### package status summaries
 
 - `/badges/summary/:package` all okay?, no notes, warnings, or errors
@@ -69,17 +85,17 @@ __NOT SUPPORTED YET__
 
     operating systems 
 
-        - `linux`
-        - `windows`
-        - `osx`
-        - `solaris`
+        - linux
+        - windows
+        - osx
+        - solaris
 
     R versions
 
-        - `devel`
-        - `oldrel`
-        - `patched`
-        - `release`
+        - devel
+        - oldrel
+        - patched
+        - release
 
 With meanings:
 
