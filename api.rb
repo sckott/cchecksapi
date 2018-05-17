@@ -31,6 +31,7 @@ class CCAPI < Sinatra::Application
     set :show_exceptions, false
     set :strict_paths, false
     set :server, :puma
+    set :protection, :except => [:json_csrf]
   end
 
   # halt: error helpers
