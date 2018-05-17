@@ -120,23 +120,37 @@ X-Content-Type-Options: nosniff
 `200` response header will look something like
 
 ```
-Access-Control-Allow-Methods: HEAD, GET
-Access-Control-Allow-Origin: *
-Cache-Control: public, must-revalidate, max-age=60
-Connection: close
-Content-Length: 10379
-Content-Type: application/json; charset=utf8
-Date: Mon, 09 Mar 2015 23:01:23 GMT
-Server: nginx/1.7.10
-Status: 200 OK
-X-Content-Type-Options: nosniff
+HTTP/2 200
+access-control-allow-methods: HEAD, GET
+access-control-allow-origin: *
+cache-control: public, must-revalidate, max-age=60
+content-type: application/json; charset=utf8
+server: Caddy
+x-content-type-options: nosniff
+content-length: 2823
+date: Thu, 17 May 2018 21:40:32 GMT
+```
+
+### Badge Response headers
+
+`200` response header will look something like
+
+```
+HTTP/2 200
+cache-control: max-age=300, public
+content-type: image/svg+xml; charset=utf-8
+expires: Thu, 17 May 2018 21:39:42 GMT
+server: Caddy
+x-content-type-options: nosniff
+content-length: 855
+date: Thu, 17 May 2018 21:39:41 GMT
 ```
 
 ### Response bodies
 
 Response bodies generally look like:
 
-```
+```json
 [{
     "count": 1,
     "data": [
@@ -162,6 +176,44 @@ Successful requests have 4 slots:
 * offset: offset value
 * error: If an error did not occur this is `null`, otherwise, an error message.
 * data: The hash of data if any data returned. If no data found, this is an empty hash (hash of length zero)
+
+
+### Response svg
+
+svg response bodies generally look like:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" width="70" height="20">
+  <linearGradient id="b" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <mask id="a">
+    <rect width="70" height="20" rx="3" fill="#fff"/>
+  </mask>
+  <g mask="url(#a)">
+    <path fill="#555" d="M0 0h43v20H0z"/>
+    <path fill="#4c1" d="M43 0h46.5v20H43z"/>
+    <path fill="url(#b)" d="M0 0h70v20H0z"/>
+  </g>
+  <g fill="#fff" text-anchor="middle"
+     font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="11">
+    <text x="21.5" y="15" fill="#010101" fill-opacity=".3">
+      CRAN
+    </text>
+    <text x="21.5" y="14">
+      CRAN
+    </text>
+    <text x="55.5" y="15" fill="#010101" fill-opacity=".3">
+      OK
+    </text>
+    <text x="55.5" y="14">
+      OK
+    </text>
+  </g>
+</svg>
+```
+
 
 ## Media Types
 
@@ -274,6 +326,36 @@ Get maintainer summary by email.
 + Response 200 (application/json)
     + [Headers](#response-headers)
     + [Body](#response-bodies)
+
+### badges summary
+
+> GET [/badges/summary/{package_name}]
+
+Get badge for CRAN checks summary by package name.
+
++ Response 200 (image/svg+xml)
+    + [Headers](#badge-response-headers)
+    + [Body](#response-svg)
+
+### badges worst
+
+> GET [/badges/summary/{package_name}]
+
+Get badge for CRAN checks summary by package name.
+
++ Response 200 (image/svg+xml)
+    + [Headers](#badge-response-headers)
+    + [Body](#response-svg)
+
+### badges flavor
+
+> GET [/badges/summary/{package_name}]
+
+Get badge for CRAN checks summary by package name.
+
++ Response 200 (image/svg+xml)
+    + [Headers](#badge-response-headers)
+    + [Body](#response-svg)
 
 
 ## Examples
