@@ -18,6 +18,9 @@
     * [package by name](#package-by-name)
     * [maintainers](#maintainers)
     * [maintainer by email](#maintainer-by-email)
+    * [badges summary](#badges-summary)
+    * [badges worst](#badges-worst)
+    * [badges flavor](#badges-flavor)
 * [Examples](#examples)
 
 ## Base URL
@@ -394,3 +397,15 @@ curl https://cranchecks.info/maintainers/csardi.gabor_at_gmail.com | jq .
       },
 ...
 ```
+
+### /badges/summary/:package
+
+[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cranchecks.info/pkgs/reshape) `[![cran checks](https://cranchecks.info/badges/summary/reshape)](https://cranchecks.info/pkgs/reshape)`
+
+### /badges/worst/:package
+
+[![cran checks](https://cranchecks.info/badges/worst/reshape)](https://cranchecks.info/pkgs/reshape) `[![cran checks](https://cranchecks.info/badges/worst/reshape)](https://cranchecks.info/pkgs/reshape)`
+
+### /badges/flavor/:flavor/:package
+
+[![cran checks](https://cranchecks.info/badges/flavor/osx/additivityTests)](https://cranchecks.info/pkgs/additivityTests) `[![cran checks](https://cranchecks.info/badges/flavor/osx/additivityTests)](https://cranchecks.info/pkgs/additivityTests)`
