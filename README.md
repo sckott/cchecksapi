@@ -15,16 +15,16 @@ tech:
 
 * language: Ruby
 * rest framework: Sinatra
-* http requests: faraday
+* scraping http requests: faraday
 * database: mongodb
 * server: caddy
 * container: all wrapped up in docker (docker-compose)
 * uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages
-* A cron job scrapes pkg specific data and maintainer level data once a day
+* A cron job scrapes pkg specific data __every hour__ and maintainer level data __every 3rd hour__
 
-## examples
+## JSON API examples
 
-> you'll need curl (which you likely have), and jq (<https://stedolan.github.io/jq/>) which you may not have
+To replicate the examples below as is, you'll need curl (which you likely have), and jq (<https://stedolan.github.io/jq/>) which you may not have. You can also just copy/paste the URLs into your browser 😏
 
 All pkgs from a maintainer that have any checks not passing
 
