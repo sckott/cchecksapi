@@ -1,10 +1,14 @@
 mongo:
-  image: mongo
+  image: mongo-auth
   volumes:
     - $HOME/data/mongodb:/data/db
   restart: always
   ports:
     - "27017:27017"
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: ${CCHECKS_MONGO_USER}
+    MONGO_INITDB_ROOT_PASSWORD: ${CCHECKS_MONGO_PWD}
+    MONGO_INITDB_DATABASE: cchecksdb
 
 api:
   build: .
@@ -13,3 +17,6 @@ api:
   links:
     - mongo
   restart: always
+  environment:
+    CCHECKS_MONGO_USER: ${CCHECKS_MONGO_USER}
+    CCHECKS_MONGO_PWD: ${CCHECKS_MONGO_PWD}

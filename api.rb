@@ -8,8 +8,16 @@ require "mongo"
 require_relative 'badges'
 require_relative 'funs'
 
-mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
-# mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
+# mongo_host = [ '127.0.0.1:27017' ]
+client_options = {
+  :database => 'cchecksdb',
+  :user => ENV.fetch('CCHECKS_MONGO_USER'),
+  :password => ENV.fetch('CCHECKS_MONGO_PWD')
+}
+# mongo = Mongo::Client.new([ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ], :database => 'cchecksdb')
+mongo = Mongo::Client.new(mongo_host, client_options)
+
 $cks = mongo[:checks]
 $maint = mongo[:maintainer]
 
