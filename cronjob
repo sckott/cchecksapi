@@ -1,1 +1,3 @@
-0 3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmongo loadmaints'
+0 * * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmongo'
+0 */3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmaints'
+
