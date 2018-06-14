@@ -6,3 +6,8 @@ notes_notifications.md
 server_notes.md
 notes_mongoservererror.txt
 .httr-oauth
+mongo_initial_setup_notes.md
+Caddyfile
+notes_web_interface.md
+notifications.R
+sqlnotes.txt
