@@ -1,5 +1,5 @@
 mongo:
-  image: mongo-auth
+  image: aashreys/mongo-auth
   volumes:
     - $HOME/data/mongodb:/data/db
   restart: always
