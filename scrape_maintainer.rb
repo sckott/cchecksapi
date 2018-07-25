@@ -11,7 +11,10 @@ mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_P
 client_options = {
   :database => 'cchecksdb',
   :user => ENV.fetch('CCHECKS_MONGO_USER'),
-  :password => ENV.fetch('CCHECKS_MONGO_PWD')
+  :password => ENV.fetch('CCHECKS_MONGO_PWD'),
+  :max_pool_size => 25,
+  :connect_timeout => 15,
+  :wait_queue_timeout => 15
 }
 $mongo = Mongo::Client.new(mongo_host, client_options)
 # $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
