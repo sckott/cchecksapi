@@ -1,27 +1,25 @@
-version: '3'
-services:
-  mongo:
-    image: aashreys/mongo-auth
-    volumes:
-      - $HOME/data/mongodb:/data/db
-    restart: always
-    ports:
-      - "27017:27017"
-    environment:
-      - AUTH: "yes"
-      - MONGODB_ADMIN_USER: "${CCHECKS_MONGO_USER}"
-      - MONGODB_ADMIN_PASS: "${CCHECKS_MONGO_PWD}"
-      - MONGODB_APPLICATION_DATABASE: "cchecksdb"
-      - MONGODB_APPLICATION_USER: "${CCHECKS_MONGO_USER}"
-      - MONGODB_APPLICATION_PASS: "${CCHECKS_MONGO_PWD}"
+mongo:
+  image: aashreys/mongo-auth
+  volumes:
+    - $HOME/data/mongodb:/data/db
+  restart: always
+  ports:
+    - "27017:27017"
+  environment:
+    AUTH: yes
+    MONGODB_ADMIN_USER: ${CCHECKS_MONGO_USER}
+    MONGODB_ADMIN_PASS: ${CCHECKS_MONGO_PWD}
+    MONGODB_APPLICATION_DATABASE: cchecksdb
+    MONGODB_APPLICATION_USER: ${CCHECKS_MONGO_USER}
+    MONGODB_APPLICATION_PASS: ${CCHECKS_MONGO_PWD}
 
-  api:
-    build: .
-    ports:
-      - "8834:8834"
-    links:
-      - mongo
-    restart: always
-    environment:
-      - CCHECKS_MONGO_USER: "${CCHECKS_MONGO_USER}"
-      - CCHECKS_MONGO_PWD: "${CCHECKS_MONGO_PWD}"
+api:
+  build: .
+  ports:
+    - "8834:8834"
+  links:
+    - mongo
+  restart: always
+  environment:
+    CCHECKS_MONGO_USER: ${CCHECKS_MONGO_USER}
+    CCHECKS_MONGO_PWD: ${CCHECKS_MONGO_PWD}
