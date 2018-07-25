@@ -8,12 +8,12 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - AUTH: yes
-      - MONGODB_ADMIN_USER: ${CCHECKS_MONGO_USER}
-      - MONGODB_ADMIN_PASS: ${CCHECKS_MONGO_PWD}
-      - MONGODB_APPLICATION_DATABASE: cchecksdb
-      - MONGODB_APPLICATION_USER: ${CCHECKS_MONGO_USER}
-      - MONGODB_APPLICATION_PASS: ${CCHECKS_MONGO_PWD}
+      - AUTH: "yes"
+      - MONGODB_ADMIN_USER: "${CCHECKS_MONGO_USER}"
+      - MONGODB_ADMIN_PASS: "${CCHECKS_MONGO_PWD}"
+      - MONGODB_APPLICATION_DATABASE: "cchecksdb"
+      - MONGODB_APPLICATION_USER: "${CCHECKS_MONGO_USER}"
+      - MONGODB_APPLICATION_PASS: "${CCHECKS_MONGO_PWD}"
 
   api:
     build: .
@@ -23,5 +23,5 @@ services:
       - mongo
     restart: always
     environment:
-      - CCHECKS_MONGO_USER: ${CCHECKS_MONGO_USER}
-      - CCHECKS_MONGO_PWD: ${CCHECKS_MONGO_PWD}
+      - CCHECKS_MONGO_USER: "${CCHECKS_MONGO_USER}"
+      - CCHECKS_MONGO_PWD: "${CCHECKS_MONGO_PWD}"
