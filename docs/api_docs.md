@@ -307,6 +307,18 @@ Get package by name.
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
+### package by name, historical data
+
+> GET [/pkgs/{package_name}/history]
+
+Get historical data for a package by name.
+
+Historical data is for the last 30 days. Once data is more than 30 days old it is discarded.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
 ### maintainers
 
 > GET [/maintainers]
@@ -322,6 +334,16 @@ Get all maintainers.
 > GET [/maintainers/{maintainer_email}]
 
 Get maintainer summary by email.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### maintainer summary by email, historical data
+
+> GET [/maintainers/{maintainer_email/history]
+
+Get historical summary data for a maintainer by email. Once data is more than 30 days old it is discarded.
 
 + Response 200 (application/json)
     + [Headers](#response-headers)

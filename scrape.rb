@@ -8,7 +8,7 @@ require "mongo"
 
 require_relative 'utils'
 
-mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
+# mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
 client_options = {
   :database => 'cchecksdb',
   :user => ENV.fetch('CCHECKS_MONGO_USER'),
@@ -17,8 +17,8 @@ client_options = {
   :connect_timeout => 15,
   :wait_queue_timeout => 15
 }
-$mongo = Mongo::Client.new(mongo_host, client_options)
-# $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
+# $mongo = Mongo::Client.new(mongo_host, client_options)
+$mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
 def scrape_all

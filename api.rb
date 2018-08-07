@@ -8,20 +8,22 @@ require "mongo"
 require_relative 'badges'
 require_relative 'funs'
 
-mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
-# mongo_host = [ '127.0.0.1:27017' ]
-client_options = {
-  :database => 'cchecksdb',
-  :user => ENV.fetch('CCHECKS_MONGO_USER'),
-  :password => ENV.fetch('CCHECKS_MONGO_PWD'),
-  :max_pool_size => 25,
-  :connect_timeout => 15,
-  :wait_queue_timeout => 15
-}
-mongo = Mongo::Client.new(mongo_host, client_options)
+# mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
+mongo_host = [ '127.0.0.1:27017' ]
+mongo = Mongo::Client.new(mongo_host, {:database => 'cchecksdb'})
+# client_options = {
+#   :database => 'cchecksdb',
+#   :user => ENV.fetch('CCHECKS_MONGO_USER'),
+#   :password => ENV.fetch('CCHECKS_MONGO_PWD'),
+#   :max_pool_size => 25,
+#   :connect_timeout => 15,
+#   :wait_queue_timeout => 15
+# }
+# mongo = Mongo::Client.new(mongo_host, client_options)
 
 $cks = mongo[:checks]
 $maint = mongo[:maintainer]
+$cks_history = mongo[:checks_history]
 
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
@@ -37,8 +39,8 @@ class CCAPI < Sinatra::Application
 
   ## configuration
   configure do
-    set :raise_errors, false
-    set :show_exceptions, false
+    set :raise_errors, true
+    set :show_exceptions, true
     set :strict_paths, false
     set :server, :puma
     set :protection, :except => [:json_csrf]
@@ -96,6 +98,7 @@ class CCAPI < Sinatra::Application
         "/heartbeat (GET)",
         "/pkgs (GET)",
         "/pkgs/:pkg_name: (GET)",
+        "/pkgs/:pkg_name:/history (GET)",
         "/maintainers (GET)",
         "/maintainers/:email: (GET)",
         "/badges/:type/:package (GET)",
@@ -134,6 +137,19 @@ class CCAPI < Sinatra::Application
     begin
       d = $cks.find({ package: params[:name] }).first
       raise Exception.new('no results found') if d.nil?
+      { error: nil, data: d }.to_json
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
+
+  get '/pkgs/:name/history' do 
+    headers_get
+    begin
+      d = $cks_history.find({ package: params[:name] }).first
+      raise Exception.new('no results found') if d.nil?
+      d.delete('_id')
+      d['history'] = d['history'].sort_by { |x| x['date_updated'] }
       { error: nil, data: d }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
