@@ -51,7 +51,7 @@ def scrape_pkg_body(z)
     return {"package" => pkg, "checks" => nil}
   end
 
-  html = Oga.parse_html(z.body)
+  html = Oga.parse_html(z.body.force_encoding 'UTF-8');
   tr = html.xpath('//table//tr');
   rws = tr.map { |e| e.xpath('./td//text()').map { |w| w.text }  }.keep_if { |a| a.length > 0 }
   rws = rws.map { |e| e.map { |f| f.lstrip } }
@@ -73,21 +73,78 @@ def scrape_pkg_body(z)
   # numbers are numbers
   res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } }
 
+  # get any free text, the check details
+  pps = html.xpath('//h3/following-sibling::p')
+  if pps.length > 0
+    chdtxt = pps.map { |w| w.text }.join(' ');
+
+    if chdtxt.scan( /Result:.+/).length != 0
+      restxt = chdtxt.scan( /Result:.+/).first
+      output = chdtxt.split(restxt)[1].split(/Flavors?/)[0].strip.gsub(/\u00a0/, '')
+    else
+      output = nil
+    end
+
+    if chdtxt.scan( /Version:.+/).length != 0
+      version = chdtxt.scan( /Version:.+/).first.sub('Version:', '').strip
+    else
+      version = nil
+    end
+
+    if chdtxt.scan( /Check:.+/).length != 0
+      check = chdtxt.scan( /Check:.+/).first.sub('Check:', '').strip
+    else
+      check = nil
+    end
+
+    if chdtxt.scan( /Result:.+/).length != 0
+      result = chdtxt.scan( /Result:.+/).first.sub('Result:', '').strip
+    else
+      result = nil
+    end
+
+    if chdtxt.scan( /Flavors?:.+/).length != 0
+      flavors = chdtxt.scan( /Flavors?:.+/).first.sub(/Flavors?:/, '').strip.split(',').map(&:strip)
+    else
+      flavors = nil
+    end
+
+
+    add_issues = ["valgrind", "clang-ASAN", "clang-UBSAN", "gcc-ASAN", "gcc-UBSAN", 
+      "noLD", "ATLAS", "MKL", "OpenBLAS", "rchk", "rcnst"]
+    adis = add_issues.map { |x| chdtxt.scan(x) }.flatten
+
+    check_deets = {
+      "version" => version,
+      "check" => check,
+      "result" => result,
+      "output" => output,
+      "flavors" => flavors,
+      "additional_issues" => adis
+    }
+  else
+    check_deets = nil
+  end
+
   # make summary
   stats = res.map { |a| a['status'] }.map(&:downcase)
   summary = {
     "any" => stats.count_em("ok") != stats.length,
-    "ok" => stats.count_em("ok"), 
+    "ok" => stats.count_em("ok"),
     "note" => stats.count_em("note"), 
     "warn" => stats.count_em("warn"), 
-    "error"=> stats.count_em("error")
+    "error"=> stats.count_em("error"),
+    "fail"=> stats.count_em("fail")
   }
 
-  return {"package" => pkg, "url" => base_url % pkg, "summary" => summary, "checks" => res}
+  return {"package" => pkg, "url" => base_url % pkg, 
+    "summary" => summary, "checks" => res, "check_details" => check_deets}
 end
 
 def fetch_urls(foo)
-  tmp = foo.map { |e| e.xpath('./td//a[contains(., "OK") or contains(., "ERROR") or contains(., "NOTE")]') }
+  tmp = foo.map { |e| 
+    e.xpath('./td//a[contains(., "OK") or contains(., "ERROR") or contains(., "NOTE") or contains(., "WARN") or contains(., "FAIL")]') 
+  }
   tmp = tmp.keep_if { |e| e.length > 0 }
   xx = tmp.map { |e| e.attribute('href')[0].text }
   return xx
