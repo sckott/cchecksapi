@@ -46,6 +46,8 @@ curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.err
 
 ## Badges
 
+> also check out badges from Metacran [Gabor Csárdi](https://github.com/gaborcsardi) for CRAN versions, CRAN release dates, and CRAN downloads <https://r-pkg.org/services#badges>
+
 markdown egs to use in your README
 
 linking to cran checks page (likely want to use `cran.r-project.org` url since cran check will complain about a different mirror's base url)
