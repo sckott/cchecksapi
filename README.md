@@ -20,7 +20,11 @@ tech:
 * server: caddy
 * container: all wrapped up in docker (docker-compose)
 * uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages
-* A cron job scrapes pkg specific data __every 3rd hour__ and maintainer level data __every 4th hour__
+* A cron job:
+    * scrapes pkg specific data __every 3rd hour__ 
+    * scrapes maintainer level data __every 4th hour__
+    * poplulates the history routes once a day
+* for the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
 
 ## JSON API examples
 

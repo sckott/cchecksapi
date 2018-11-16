@@ -16,10 +16,10 @@
     * [docs](#docs)
     * [packages](#packages)
     * [package by name](#package-by-name)
-    * [package by name (history)](#package-by-name--history-)
-    * [all packages history](#all-packages-history)
+    * [package by name (history)](#package-by-name-history)
+    * [all packages history](#packages-history)
     * [maintainers](#maintainers)
-    * [maintainer by email](#maintainer-by-email)
+    * [maintainer by email](#maintainer-summary-by-email)
     * [badges summary](#badges-summary)
     * [badges worst](#badges-worst)
     * [badges flavor](#badges-flavor)
@@ -315,6 +315,8 @@ Get package by name.
 
 Get last 30 days of checks for a package name.
 
+For the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
+
 + Response 200 (application/json)
     + [Headers](#response-headers)
     + [Body](#response-bodies)
@@ -324,6 +326,8 @@ Get last 30 days of checks for a package name.
 > GET [/pkghistory]
 
 Get last 30 days of checks for all packages.
+
+For the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
