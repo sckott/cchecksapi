@@ -19,9 +19,11 @@ client_options = {
   :wait_queue_timeout => 15
 }
 mongo = Mongo::Client.new(mongo_host, client_options)
+# mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 
 $cks = mongo[:checks]
 $maint = mongo[:maintainer]
+$cks_history = mongo[:checks_history]
 
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
@@ -96,6 +98,8 @@ class CCAPI < Sinatra::Application
         "/heartbeat (GET)",
         "/pkgs (GET)",
         "/pkgs/:pkg_name: (GET)",
+        "/pkgs/:pkg_name:/history (GET)",
+        "/pkghistory (GET)" ,
         "/maintainers (GET)",
         "/maintainers/:email: (GET)",
         "/badges/:type/:package (GET)",
@@ -201,6 +205,46 @@ class CCAPI < Sinatra::Application
     d = $cks.find({ package: package }).first
     do_badge_flavor(package, flavor, ignore, d)
   end
+
+
+  get '/pkghistory' do
+    headers_get
+    begin
+      %i(limit offset).each do |p|
+        unless params[p].nil?
+          begin
+            params[p] = Integer(params[p])
+          rescue ArgumentError
+            raise Exception.new("#{p.to_s} is not an integer")
+          end
+        end
+      end
+      lim = (params[:limit] || 10).to_i
+      off = (params[:offset] || 0).to_i
+      raise Exception.new('limit too large (max 1000)') unless lim <= 1000
+      d = $cks_history.find({}, {"limit" => lim, "skip" => off})
+      dat = d.to_a
+      raise Exception.new('no results found') if d.nil?
+      { found: d.count, count: dat.length, offset: nil, error: nil,
+        data: dat }.to_json
+    rescue Exception => e
+      halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
+    end
+  end
+
+  get '/pkgs/:name/history' do
+    headers_get
+    begin
+      d = $cks_history.find({ package: params[:name] }).first
+      raise Exception.new('no results found') if d.nil?
+      { error: nil, data: d }.to_json
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
+
+
+
 
   # prevent some HTTP methods
   route :post, :put, :delete, :copy, :patch, :options, :trace, '/*' do
