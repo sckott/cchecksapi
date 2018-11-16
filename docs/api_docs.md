@@ -16,6 +16,8 @@
     * [docs](#docs)
     * [packages](#pkgs)
     * [package by name](#package-by-name)
+    * [package by name (history)](#pkg-history)
+    * [all packages history](#pkgs-history)
     * [maintainers](#maintainers)
     * [maintainer by email](#maintainer-by-email)
     * [badges summary](#badges-summary)
@@ -287,7 +289,7 @@ Redirects to docs at github repo
 + Response 301
     + [Headers](#response-headers)
 
-### pkgs
+### packages
 
 > GET [/pkgs]
 
@@ -302,6 +304,26 @@ Get all repositories.
 > GET [/pkgs/{package_name}]
 
 Get package by name.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### package by name (history)
+
+> GET [/pkgs/{package_name}/history]
+
+Get last 30 days of checks for a package name.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### packages (history)
+
+> GET [/pkghistory]
+
+Get last 30 days of checks for all packages.
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
