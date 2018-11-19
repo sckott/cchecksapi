@@ -9,7 +9,6 @@ require_relative 'badges'
 require_relative 'funs'
 
 mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
-# mongo_host = [ '127.0.0.1:27017' ]
 client_options = {
   :database => 'cchecksdb',
   :user => ENV.fetch('CCHECKS_MONGO_USER'),
