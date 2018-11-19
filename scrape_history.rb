@@ -26,7 +26,7 @@ def scrape_history
   histnames = history_pkg_names;
   to_add = currnames - histnames;
   if to_add.length > 0
-    pkgsadd = pkgs.keep_if { |w| to_add.include? w['package'] };
+    pkgsadd = pkgs.select { |w| to_add.include? w['package'] };
   else
     pkgsadd = []
   end
