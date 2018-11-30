@@ -48,6 +48,83 @@ Packages that have error status checks
 curl https://cranchecks.info/pkgs?limit=1000 | jq '.data[] | select(.summary.error > 0) | .package'
 ```
 
+### workflow for checking your own packages
+
+Check if you have any packages have one or more of a current status across operating systems and R versions, e.g., errors
+
+```sh
+curl https://cranchecks.info/maintainers/csardi.gabor_at_gmail.com  | jq '.data.table[] | select(.error > 0)'
+```
+
+```sh
+{
+  "package": "rcmdcheck",
+  "any": true,
+  "ok": 9,
+  "note": 0,
+  "warn": 0,
+  "error": 3
+}
+{
+  "package": "secret",
+  "any": true,
+  "ok": 11,
+  "note": 0,
+  "warn": 0,
+  "error": 1
+}
+```
+
+Then grab the check details for a specific package
+
+```sh
+curl https://cranchecks.info/pkgs/secret  | jq .data.check_details
+```
+
+```sh
+{
+  "version": "1.0.0",
+  "check": "examples",
+  "result": "ERROR",
+  "output": "Running examples in 'secret-Ex.R' ... cutoff",
+  "flavors": [
+    "r-devel-windows-ix86+x86_64"
+  ],
+  "additional_issues": []
+}
+```
+
+Optionally see the check details for previous CRAN checks in the `/history` route (up to 30 days prior to the current date) (though as of this writing we have only about 10 days)
+
+```sh
+curl https://cranchecks.info/pkgs/secret/history | jq '.data.history[].check_details'
+```
+
+```sh
+{
+  "version": "1.0.0",
+  "check": "examples",
+  "result": "ERROR",
+  "output": "Running examples in 'secret-Ex.R' ... cutoff",
+  "flavors": [
+    "r-devel-windows-ix86+x86_64"
+  ],
+  "additional_issues": []
+}
+{
+  "version": "1.0.0",
+  "check": "examples",
+  "result": "ERROR",
+  "output": "Running examples in 'secret-Ex.R' ... cutoff",
+  "flavors": [
+    "r-devel-windows-ix86+x86_64"
+  ],
+  "additional_issues": []
+}
+... cutoff
+```
+
+
 ## Badges
 
 > also check out badges from Metacran [Gabor Csárdi](https://github.com/gaborcsardi) for CRAN versions, CRAN release dates, and CRAN downloads <https://r-pkg.org/services#badges>
