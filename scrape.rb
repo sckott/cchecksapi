@@ -24,7 +24,7 @@ $cks = $mongo[:checks]
 def scrape_all
   pkgs = cran_packages;
   resp_onses = async_get(pkgs);
-  out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_pkg_body(e) };
+  out = Parallel.map(resp_onses, in_processes: 2) { |e| scrape_pkg_body(e) };
   if $cks.count > 0
     $cks.drop
     $cks = $mongo[:checks]
