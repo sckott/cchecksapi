@@ -1,0 +1,22 @@
+# start container
+docker run --name some-mysql2 -d -v $HOME/data/cchecks:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root mariadb:latest
+
+# sh into container
+docker run -it --link some-mysql2:mysql --rm mysql sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"$MYSQL_ENV_MYSQL_ROOT_PASSWORD" --default-character-set=utf8'
+
+# create database
+CREATE database cchecks;
+
+# create table
+USE cchecks;
+CREATE TABLE histories(
+    package        VARCHAR(100) NOT NULL,
+    summary        text NOT NULL,
+    checks         text,
+    check_details  text,
+    date_updated   datetime NOT NULL
+);
+ALTER TABLE histories CONVERT TO CHARACTER SET utf8;
+
+# delete temporary container
+docker rm -f <container id>

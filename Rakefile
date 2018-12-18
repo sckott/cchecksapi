@@ -1,6 +1,6 @@
 require_relative 'scrape'
 require_relative 'scrape_maintainer'
-require_relative 'scrape_history'
+require_relative 'history'
 
 desc "load cran checks results into mongo"
 task :loadmongo do
@@ -23,7 +23,7 @@ end
 desc "update history"
 task :loadhistory do
   begin
-    scrape_history()
+    history()
   rescue Exception => e
     raise e
   end
