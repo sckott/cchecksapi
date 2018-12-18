@@ -1,0 +1,12 @@
+---
+caching:
+  expires: 3600
+db:
+  cchecks:
+    adapter: mysql2
+    encoding: utf8
+    host: mariadb
+    username: root
+    password: root
+    port: 3306
+    database: cchecks

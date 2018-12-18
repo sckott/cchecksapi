@@ -4,10 +4,13 @@ require 'multi_json'
 require "sinatra/multi_route"
 require 'yaml'
 require "mongo"
+require 'active_record'
 
 require_relative 'badges'
 require_relative 'funs'
+require_relative 'history'
 
+# mongo
 mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
 client_options = {
   :database => 'cchecksdb',
@@ -24,6 +27,11 @@ $cks = mongo[:checks]
 $maint = mongo[:maintainer]
 $cks_history = mongo[:checks_history]
 
+# sql-mariadb
+$config = YAML::load_file(File.join(__dir__, 'config.yaml'))
+ActiveSupport::Deprecation.silenced = true
+ActiveRecord::Base.establish_connection($config['db']['cchecks'])
+
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
 
@@ -38,8 +46,8 @@ class CCAPI < Sinatra::Application
 
   ## configuration
   configure do
-    set :raise_errors, false
-    set :show_exceptions, false
+    set :raise_errors, true
+    set :show_exceptions, true
     set :strict_paths, false
     set :server, :puma
     set :protection, :except => [:json_csrf]
@@ -98,7 +106,6 @@ class CCAPI < Sinatra::Application
         "/pkgs (GET)",
         "/pkgs/:pkg_name: (GET)",
         "/pkgs/:pkg_name:/history (GET)",
-        "/pkghistory (GET)" ,
         "/maintainers (GET)",
         "/maintainers/:email: (GET)",
         "/badges/:type/:package (GET)",
@@ -125,7 +132,7 @@ class CCAPI < Sinatra::Application
       d = $cks.find({}, {"limit" => lim, "skip" => off})
       dat = d.to_a
       raise Exception.new('no results found') if d.nil?
-      { found: d.count, count: dat.length, offset: nil, error: nil,
+      { found: d.count, count: dat.length, offset: params[:offset], error: nil,
         data: dat }.to_json
     rescue Exception => e
       halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
@@ -206,37 +213,46 @@ class CCAPI < Sinatra::Application
   end
 
 
-  get '/pkghistory' do
-    headers_get
-    begin
-      %i(limit offset).each do |p|
-        unless params[p].nil?
-          begin
-            params[p] = Integer(params[p])
-          rescue ArgumentError
-            raise Exception.new("#{p.to_s} is not an integer")
-          end
-        end
-      end
-      lim = (params[:limit] || 10).to_i
-      off = (params[:offset] || 0).to_i
-      raise Exception.new('limit too large (max 1000)') unless lim <= 1000
-      d = $cks_history.find({}, {"limit" => lim, "skip" => off})
-      dat = d.to_a
-      raise Exception.new('no results found') if d.nil?
-      { found: d.count, count: dat.length, offset: nil, error: nil,
-        data: dat }.to_json
-    rescue Exception => e
-      halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
-    end
-  end
+  # get '/pkghistory' do
+  #   headers_get
+  #   begin
+  #     d = HistoryAll.endpoint(params)
+  #     raise Exception.new('no results found') if d.nil?
+  #     dat = d.as_json
+  #     dat.map { |x| x['summary'] = MultiJson.load(x['summary']) }
+  #     dat.map { |x| x['checks'] = MultiJson.load(x['checks']) }
+  #     dat.map { |x| x['check_details'] = MultiJson.load(x['check_details']) }
+  #     dat.map { |x| 
+  #       if !x['check_details'].nil?
+  #         x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil 
+  #       end
+  #     }
+  #     hist = dat.map { |x| { package: x["package"], history: dat.delete('package') } }
+  #     { found: d.count, count: d.length, offset: params[:offset], error: nil,
+  #       data: hist }.to_json
+  #   rescue Exception => e
+  #     halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
+  #   end
+  # end
 
   get '/pkgs/:name/history' do
     headers_get
     begin
-      d = $cks_history.find({ package: params[:name] }).first
-      raise Exception.new('no results found') if d.nil?
-      { error: nil, data: d }.to_json
+      d = HistoryName.endpoint(params)
+      raise Exception.new('no results found') if d.length.zero?
+      dat = d.as_json
+      dat.map { |x| x.delete('id') }
+      dat.map { |x| x.delete('package') }
+      dat.map { |x| x['summary'] = MultiJson.load(x['summary']) }
+      dat.map { |x| x['checks'] = MultiJson.load(x['checks']) }
+      dat.map { |x| x['check_details'] = MultiJson.load(x['check_details']) }
+      dat.map { |x| 
+        if !x['check_details'].nil?
+          x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil 
+        end
+      }
+      hist = { package: params[:name], history: dat }
+      { error: nil, data: hist }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
     end

@@ -13,12 +13,21 @@ mongo:
     MONGODB_APPLICATION_USER: ${CCHECKS_MONGO_USER}
     MONGODB_APPLICATION_PASS: ${CCHECKS_MONGO_PWD}
 
+mariadb:
+  image: mariadb
+  volumes:
+    - $HOME/data/cchecks:/var/lib/mysql
+  environment:
+    - MYSQL_ROOT_PASSWORD=root
+  restart: always
+
 api:
   build: .
   ports:
     - "8834:8834"
   links:
     - mongo
+    - mariadb
   restart: always
   environment:
     CCHECKS_MONGO_USER: ${CCHECKS_MONGO_USER}
