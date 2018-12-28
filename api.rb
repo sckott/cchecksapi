@@ -129,10 +129,19 @@ class CCAPI < Sinatra::Application
       lim = (params[:limit] || 10).to_i
       off = (params[:offset] || 0).to_i
       raise Exception.new('limit too large (max 1000)') unless lim <= 1000
-      d = $cks.find({}, {"limit" => lim, "skip" => off})
-      dat = d.to_a
+      raise Exception.new('limit must be zero or greater') unless lim >= 0
+      if lim == 0
+        d = $cks.count
+        dat = []
+      else
+        d = $cks.find({}, {"limit" => lim, "skip" => off})
+        dat = d.to_a
+      end
       raise Exception.new('no results found') if d.nil?
-      { found: d.count, count: dat.length, offset: params[:offset], error: nil,
+      { found: lim == 0 ? d : d.count, 
+        count: dat.length, 
+        offset: params[:offset], 
+        error: nil,
         data: dat }.to_json
     rescue Exception => e
       halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
@@ -165,10 +174,19 @@ class CCAPI < Sinatra::Application
       lim = (params[:limit] || 10).to_i
       off = (params[:offset] || 0).to_i
       raise Exception.new('limit too large (max 1000)') unless lim <= 1000
-      d = $maint.find({}, {"limit" => lim, "skip" => off})
-      dat = d.to_a
+      raise Exception.new('limit must be zero or greater') unless lim >= 0
+      if lim == 0
+        d = $maint.count
+        dat = []
+      else
+        d = $maint.find({}, {"limit" => lim, "skip" => off})
+        dat = d.to_a
+      end
       raise Exception.new('no results found') if d.nil?
-      { found: d.count, count: dat.length, offset: nil, error: nil,
+      { found: lim == 0 ? d : d.count, 
+        count: dat.length, 
+        offset: params[:offset], 
+        error: nil,
         data: dat }.to_json
     rescue Exception => e
       halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
