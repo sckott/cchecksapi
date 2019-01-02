@@ -243,7 +243,7 @@ We don't use any. Cheers :)
 + offset (integer, optional) Record `number` to start at.
     + Default: `0`
 
-Above parameters can be used only on `/pkgs` and `/maintainers`
+Above parameters can be used only on `/pkgs`, `/maintainers`, and `/pkgs/{package_name}/history`
 
 ## Routes
 
@@ -294,6 +294,8 @@ Redirects to docs at github repo
 
 Get all repositories.
 
+Default limit of 10
+
 + Response 200 (application/json)
     + [Headers](#response-headers)
     + [Body](#response-bodies)
@@ -314,6 +316,8 @@ Get package by name.
 
 Get last 30 days of checks for a package name.
 
+Default limit of 10
+
 For the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
 
 + Response 200 (application/json)
@@ -325,6 +329,8 @@ For the history routes, we keep the last 30 days of checks for each package; eac
 > GET [/maintainers]
 
 Get all maintainers.
+
+Default limit of 10
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
