@@ -16,7 +16,7 @@ tech:
 * language: Ruby
 * rest framework: Sinatra
 * scraping http requests: faraday
-* database: mongodb
+* databases: mongodb, mariadb
 * server: caddy
 * container: all wrapped up in docker (docker-compose)
 * uses Gábor's <https://crandb.r-pkg.org> API to get names of CRAN packages
