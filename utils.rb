@@ -3,11 +3,11 @@ require 'typhoeus'
 require 'typhoeus/adapters/faraday'
 
 def async_get(x)
-  conn = Faraday.new(:url => "https://cran.rstudio.com") do |faraday|
+  conn = Faraday.new(:url => "https://cloud.r-project.org") do |faraday|
     faraday.adapter :typhoeus
   end
 
-  urlx = x.map {|z| '/web/checks/check_results_%s.html' % z}
+  urlx = x.map {|z| '/web/checks/check_results_%s.html' % z};
   reqs = []
   urlx.each_slice(100) do |urlchunk|
     responses = []
@@ -21,4 +21,9 @@ def async_get(x)
   end
   # return array of Faraday::Response objects
   return reqs.flatten 
+end
+
+def list_htmls(path)
+  files = Dir[path];
+  return files
 end

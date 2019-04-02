@@ -21,11 +21,12 @@ $mongo = Mongo::Client.new(mongo_host, client_options)
 $maint = $mongo[:maintainer]
 
 def scrape_all_maintainers
-  maints = cran_maintainers;
-  resp_onses = async_get(maints);
+  # maints = cran_maintainers;
+  # resp_onses = async_get(maints);
+  htmls = list_htmls("/tmp/mainthtmls/*");
   # out = Parallel.map(resp_onses, in_processes: 4) { |e| scrape_maintainer_body(e) };
   out = []
-  resp_onses.each do |x|
+  htmls.each do |x|
     out << scrape_maintainer_body(x)
   end
   if $maint.count > 0
@@ -42,14 +43,16 @@ def prep_mongo_(x)
 end
 
 def scrape_maintainer_body(z)
-  base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
-  email = z.to_hash[:url].to_s.sub('https://cran.rstudio.com/web/checks/check_results_', '').sub('.html', '')
-  if !z.success?
-    return {"email" => email, "url" => nil, "table" => nil, "packages" => nil}
-  end
+  base_url = 'https://cloud.r-project.org/web/checks/check_results_%s.html'
+  sub_str = "https-cloud-r-project-org-web-checks-check-results-"
+  # email = z.split('/').last.sub("-html", "").sub(sub_str, "").sub("-at-", "_at_").gsub("-", ".")
 
-  html = Oga.parse_html(z.body.force_encoding 'UTF-8')
+  html = Oga.parse_html(File.read(z).force_encoding 'UTF-8')
   title = html.xpath('//title').text
+  if title.length == 0
+    return {"email" => nil, "url" => nil, "table" => nil, "packages" => nil}
+  end
+  email = title.split('Maintainer')[1].strip.split("<").last.sub(">", "").gsub(/[[:space:]]/, "_")
   maint_name = title.split('Maintainer')[1].strip.split("<")[0].gsub(/[[:space:]]$/, "")
 
   if html.xpath('//table').length == 0
@@ -85,7 +88,7 @@ def scrape_maintainer_body(z)
   dat = []
   pkgs.each do |x|
     pkg = x.attribute("id").text
-    checks_url = 'https://cran.rstudio.com/web/checks/' + x.xpath("a").attribute("href")[0].value
+    checks_url = 'https://cloud.r-project.org/web/checks/' + x.xpath("a").attribute("href")[0].value
     check = x.next.next.text.strip
     check = check.sub(/Current CRAN status:/, "").split(",").map { |e| e.split(":").map(&:strip) }
     check = check.map { |e| Hash[["category", "number_checks"].zip(e)] }
@@ -107,7 +110,7 @@ end
 
 # cran_maintainers()
 def cran_maintainers
-  conn = Faraday.new(:url => 'https://cran.rstudio.com/web/checks/check_summary_by_maintainer.html') do |f|
+  conn = Faraday.new(:url => 'https://cloud.r-project.org/web/checks/check_summary_by_maintainer.html') do |f|
     f.adapter Faraday.default_adapter
   end
   x = conn.get
