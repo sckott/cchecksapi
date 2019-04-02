@@ -21,10 +21,16 @@ $mongo = Mongo::Client.new(mongo_host, client_options)
 # $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 
+# https.cloud-r-project-org-web-checks-check-resultstab-html
+# https.cloud-r-project-org-web-checks-check-resultstools-html
+# https.cloud-r-project-org-web-checks-check-resultswidgets-html
+
 def scrape_all
-  pkgs = cran_packages;
-  resp_onses = async_get(pkgs);
-  out = Parallel.map(resp_onses, in_processes: 2) { |e| scrape_pkg_body(e) };
+  # pkgs = cran_packages;
+  # resp_onses = async_get(pkgs);
+  htmls = list_htmls("/tmp/htmls/*");
+  # out = Parallel.map(resp_onses, in_processes: 2) { |e| scrape_pkg_body(e) };
+  out = Parallel.map(htmls, in_processes: 2) { |e| scrape_pkg_body(e) };
   if $cks.count > 0
     $cks.drop
     $cks = $mongo[:checks]
@@ -45,14 +51,22 @@ class Array
 end
 
 def scrape_pkg_body(z)
-  base_url = 'https://cran.rstudio.com/web/checks/check_results_%s.html'
-  pkg = z.to_hash[:url].to_s.sub('https://cran.rstudio.com/web/checks/check_results_', '').sub('.html', '')
-  if !z.success?
+  base_url = 'https://cloud.r-project.org/web/checks/check_results_%s.html'
+  
+  sub_str = "https-cloud-r-project-org-web-checks-check-results-"
+  pkg = z.split('/').last.sub("-html", "").sub(sub_str, "").sub("-", ".")
+  # puts pkg 
+  # pkg = z.to_hash[:url].to_s.sub('https://cloud.r-project.org/web/checks/check_results_', '').sub('.html', '')
+  # if !z.success?
+  #   return {"package" => pkg, "checks" => nil}
+  # end
+
+  # html = Oga.parse_html(z.body.force_encoding 'UTF-8');
+  html = Oga.parse_html(File.read(z).force_encoding 'UTF-8');
+  tr = html.xpath('//table//tr');
+  if tr.length == 0
     return {"package" => pkg, "checks" => nil}
   end
-
-  html = Oga.parse_html(z.body.force_encoding 'UTF-8');
-  tr = html.xpath('//table//tr');
   rws = tr.map { |e| e.xpath('./td//text()').map { |w| w.text }  }.keep_if { |a| a.length > 0 }
   rws = rws.map { |e| e.map { |f| f.lstrip } }
   rws = rws.map { |e| [e[2], e[3], e[4], e[5], e[6], e[9]] }
@@ -67,11 +81,11 @@ def scrape_pkg_body(z)
   end
 
   # lowercase all keys
-  res.map { |a| a.keys.map { |k| a[k.downcase] = a.delete k } }
+  res.map { |a| a.keys.map { |k| a[k.downcase] = a.delete k } };
   # strip all whitespace
-  res.map { |a| a.map { |k, v| a[k] = v.strip } }
+  res.map { |a| a.map { |k, v| a[k] = v.strip } };
   # numbers are numbers
-  res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } }
+  res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } };
 
   # get any free text, the check details
   pps = html.xpath('//h3/following-sibling::p')
