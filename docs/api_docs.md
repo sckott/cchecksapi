@@ -152,22 +152,47 @@ date: Thu, 17 May 2018 21:39:41 GMT
 Response bodies generally look like:
 
 ```json
-[{
-    "count": 1,
-    "data": [
-    {
-        "AnaCat": "potamodromous",
-        "AquacultureRef": 12108,
-        "Aquarium": "never/rarely",
-        "AquariumFishII": " ",
-        "AquariumRef": null,
-        "Author": "(Linnaeus, 1758)",
-        ...<cutoff>
-    }
-    ],
+{
+
     "error": null,
-    "returned": 1
-}]
+    "data": {
+        "_id": "crul",
+        "package": "crul",
+        "url": "https://cloud.r-project.org/web/checks/check_results_crul.html",
+        "summary": {
+            "any": false,
+            "ok": 12,
+            "note": 0,
+            "warn": 0,
+            "error": 0,
+            "fail": 0
+        },
+        "checks": [
+            {
+                "flavor": "r-devel-linux-x86_64-debian-clang",
+                "version": "0.7.4",
+                "tinstall": 6.81,
+                "tcheck": 34.84,
+                "ttotal": 41.65,
+                "status": "OK",
+                "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-clang/crul-00check.html"
+            },
+            {
+                "flavor": "r-devel-linux-x86_64-debian-gcc",
+                "version": "0.7.4",
+                "tinstall": 5.93,
+                "tcheck": 28.31,
+                "ttotal": 34.24,
+                "status": "OK",
+                "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-gcc/crul-00check.html"
+            },
+            ...<cutoff>
+        ],
+        "check_details": null,
+        "date_updated": "2019-06-03T15:02:32.258Z"
+    }
+
+}
 ```
 
 Successful requests have 4 slots:
@@ -263,7 +288,7 @@ This path redirects to `/heartbeat`
 
 > GET [/heartbeat]
 
-Get heartbeat for the Fishbase API [GET]
+Get heartbeat for the cchecks API [GET]
 
 + Response 200
     + [Headers](#response-headers)
@@ -318,7 +343,7 @@ Get last 30 days of checks for a package name.
 
 Default limit of 10
 
-For the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
+For the history routes, we continually keep historical checks for each package. This may be changed at some point (See [issue #30](https://github.com/ropenscilabs/cchecksapi/issues/30) for discussion)
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
