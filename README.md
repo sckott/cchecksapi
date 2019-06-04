@@ -127,7 +127,7 @@ curl https://cranchecks.info/pkgs/secret/history | jq '.data.history[].check_det
 
 ## Badges
 
-> also check out badges from Metacran [Gabor Csárdi](https://github.com/gaborcsardi) for CRAN versions, CRAN release dates, and CRAN downloads <https://r-pkg.org/services#badges>
+> also check out badges from R-hub for CRAN versions, CRAN release dates, and CRAN downloads <https://docs.r-hub.io/#badges>
 
 markdown egs to use in your README
 
