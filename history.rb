@@ -1,6 +1,8 @@
 require "mongo"
 require 'active_record'
 require 'date'
+require 'aws-sdk-s3'
+require 'ndjson'
 require_relative 'utils'
 
 # mongo connection
@@ -17,6 +19,14 @@ $mongo = Mongo::Client.new(mongo_host, client_options)
 # $mongo = Mongo::Client.new([ '127.0.0.1:27017' ], :database => 'cchecksdb')
 $cks = $mongo[:checks]
 $cks_history = $mongo[:checks_history]
+
+# s3 connection
+Aws.config[:region] = 'us-west-2'
+Aws.config[:credentials] = Aws::Credentials.new(ENV.fetch('CCHECKS_S3_WRITE_ACCESS_KEY'), ENV.fetch('CCHECKS_S3_WRITE_SECRET_KEY'))
+$s3_x = Aws::S3::Resource.new(region: 'us-west-2')
+# $s3 = S3::Service.new(
+#   :access_key_id => ENV.fetch('CCHECKS_S3_WRITE_ACCESS_KEY'),
+#   :secret_access_key => ENV.fetch('CCHECKS_S3_WRITE_SECRET_KEY'))
 
 # sql connection
 $config = YAML::load_file(File.join(__dir__, 'config.yaml'))
@@ -37,6 +47,24 @@ class HistoryName < ActiveRecord::Base
       .where(package: params[:name])
       .limit(params[:limit] || 10)
       .offset(params[:offset])
+  end
+end
+
+class Hist < ActiveRecord::Base
+  self.table_name = 'histories'
+end
+
+class HistoryUniqueDays < ActiveRecord::Base
+  self.table_name = 'histories'
+  def self.count
+    select('DISTINCT date_updated')
+  end
+end
+
+class HistoryOldestDayData < ActiveRecord::Base
+  self.table_name = 'histories'
+  def self.fetch
+    where(date_updated: maximum('date_updated'))
   end
 end
 
@@ -79,9 +107,6 @@ def history
       date_updated: z['date_updated']
     )
   end; nil
-
-  # discard any data older then 30 days
-  # FIXME
 end
 
 def hist_get_pkgs
@@ -146,3 +171,53 @@ end
 #   check_details: null, 
 #   date_updated: "2018-11-16 21:03:59 UTC"
 # )
+
+def compress_file(file_name)
+  zipped = "#{file_name}.gz"
+  Zlib::GzipWriter.open(zipped) do |gz|
+    gz.write IO.binread(file_name)
+  end
+end
+# compress_file("2019-06-04.json")
+# compress_file("2019-06-05.json")
+
+# History Caching
+# - get most recent days (current or previous) history
+# - then writes to a ND-JSON file
+# - push up the ND-JSON file to Amazon S3
+# - delete that history data from the SQL DB
+# note: manually need to write the current history DB data to disk 
+# note: in theory, once manual cleaning out is done, we'll always have
+#  about 30 days of history, with the oldest day being pruned out 
+#  each day and sent up to S3
+def cache_history
+  x = HistoryOldestDayData.fetch; nil
+  data = x.as_json; nil
+
+  tod_ay = DateTime.now.strftime("%Y-%m-%d")
+  json_file = DateTime.now.strftime("%Y-%m-%d") + ".json"
+  nd = NDJSON::Generator.new json_file
+  data.each do |x|; nil
+    nd.write(x); nil
+  end; nil
+
+  # compress json file
+  compress_file(json_file)
+  json_file_gz = json_file + ".gz"
+
+  # upload
+  obj = $s3_x.bucket("cchecks-history").object(json_file_gz)
+  obj.upload_file(json_file_gz)
+
+  # get secure link
+  # ob = x.bucket("cchecks-history").object(json_file_gz)
+  # ob.presigned_url(:get, expires_in: 1200)
+
+  # delete the data from the SQL DB for tod_ay date
+  # x.delete_all(date_updated: data[0]['date_updated'])
+  Hist.where(date_updated: data[0]['date_updated']).delete_all; nil
+
+  # delete ndjson file on disk
+  File.delete(json_file)
+  File.delete(json_file_gz)
+end
