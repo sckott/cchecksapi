@@ -11,3 +11,8 @@ Caddyfile
 notes_web_interface.md
 notifications.R
 sqlnotes.txt
+backup_restore.sh
+notes-sqldbstuff.txt
+cache-history-manual.sh
+history-manual.rb
+sql_fixes.sql

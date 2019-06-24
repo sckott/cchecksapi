@@ -29,6 +29,15 @@ task :loadhistory do
   end
 end
 
+desc "cache history"
+task :cachehistory do
+  begin
+    cache_history()
+  rescue Exception => e
+    raise e
+  end
+end
+
 
 desc "do one"
 task :one do

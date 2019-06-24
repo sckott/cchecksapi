@@ -5,3 +5,4 @@
 0 */4 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmaints'
 
 0 0 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadhistory'
+0 1 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake cachehistory'
