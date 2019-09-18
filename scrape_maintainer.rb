@@ -29,6 +29,7 @@ def scrape_all_maintainers
   htmls.each do |x|
     out << scrape_maintainer_body(x)
   end
+  out.compact!
   if $maint.count > 0
     $maint.drop
     $maint = $mongo[:maintainer]
@@ -45,10 +46,14 @@ end
 def scrape_maintainer_body(z)
   base_url = 'https://cloud.r-project.org/web/checks/check_results_%s.html'
   sub_str = "https-cloud-r-project-org-web-checks-check-results-"
-  # email = z.split('/').last.sub("-html", "").sub(sub_str, "").sub("-at-", "_at_").gsub("-", ".")
 
   html = Oga.parse_html(File.read(z).force_encoding 'UTF-8')
   title = html.xpath('//title').text
+  # if 404 not found return nil
+  # - could be a maintainer of a package that's been archived and so no longer exists
+  if !title.match(/404/).nil?
+    return nil
+  end
   if title.length == 0
     return {"email" => nil, "url" => nil, "table" => nil, "packages" => nil}
   end
