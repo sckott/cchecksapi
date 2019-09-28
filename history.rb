@@ -68,6 +68,17 @@ class HistoryOldestDayData < ActiveRecord::Base
   end
 end
 
+class HistoryOlderThan30Days < ActiveRecord::Base
+  self.table_name = 'histories'
+  def self.fetch
+    where("date_updated < ?", 30.days.ago)
+  end
+  def self.delete_all
+    where("date_updated < ?", 30.days.ago)
+      .delete_all
+  end
+end
+
 # class HistoryAll < ActiveRecord::Base
 #   self.table_name = 'histories'
 #
@@ -220,4 +231,9 @@ def cache_history
   # delete ndjson file on disk
   File.delete(json_file)
   File.delete(json_file_gz)
+end
+
+# Delete all data older than 30 days
+def delete_history_older_than_30_days
+  HistoryOlderThan30Days.delete_all; nil
 end

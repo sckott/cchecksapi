@@ -38,6 +38,15 @@ task :cachehistory do
   end
 end
 
+desc "clean history"
+task :cleanhistory do
+  begin
+    delete_history_older_than_30_days()
+  rescue Exception => e
+    raise e
+  end
+end
+
 
 desc "do one"
 task :one do
