@@ -16,6 +16,11 @@ create table histories (
 SET AUTOCOMMIT = 0; SET UNIQUE_CHECKS=0; SET FOREIGN_KEY_CHECKS=0;
 ALTER TABLE histories CONVERT TO CHARACTER SET utf8;
 INSERT INTO histories (package,summary,checks,check_details,date_updated) SELECT package,summary,checks,check_details,date_updated FROM histories_old;
+# maybe can do above but with only data from last 30 days?
+    -- INSERT INTO histories (package,summary,checks,check_details,date_updated) 
+    -- SELECT package,summary,checks,check_details,date_updated 
+    -- FROM histories_old
+    -- WHERE date_updated > NOW() - INTERVAL 1 MONTH;
 SET FOREIGN_KEY_CHECKS=1; SET UNIQUE_CHECKS=1; COMMIT; SET AUTOCOMMIT = 1;
 
 # create multi-column index to speed up queries
@@ -28,7 +33,7 @@ show index from histories;
 select count(*) from histories;
 
 # test some queries - should be fast
-select package,date_updated from histories where DATE(date_updated) = '2019-06-01' limit 10;
+select package,date_updated from histories where DATE(date_updated) = '2019-09-05' limit 10;
 # to file
 select * INTO OUTFILE '2019-06-01.txt'
 FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'

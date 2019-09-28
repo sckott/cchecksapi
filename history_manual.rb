@@ -59,13 +59,15 @@ def write_history(date)
   obj.upload_file(json_file_gz)
 end
 
-# write_history('2019-06-02')
+# write_history('2019-09-19')
 # dates = ["3", "4", "5"].map { |z| "2019-05-0" + z }
 # (1.month.ago.to_date..Date.today).map{ |date| date.strftime("%Y-%m-%d") }
 # Time.now.beginning_of_month - 1.day
 # dates = ("2019-05-01".to_date..Time.now.beginning_of_month).map{ |date| date.strftime("%Y-%m-%d") }
 # dates = ("2019-01-01".to_date.."2019-01-31".to_date).map{ |date| date.strftime("%Y-%m-%d") }
-dates = ["2018-12-18",("2018-12-20".to_date.."2018-12-31".to_date).map{ |date| date.strftime("%Y-%m-%d") }].flatten
+# dates = ["2018-12-18",("2018-12-20".to_date.."2018-12-31".to_date).map{ |date| date.strftime("%Y-%m-%d") }].flatten
+dates = ("2019-09-20".to_date.."2019-09-26".to_date).map{ |date| date.strftime("%Y-%m-%d") }
 dates.each do |z| 
   write_history(z)
 end
+
