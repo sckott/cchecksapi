@@ -4,5 +4,6 @@
 30 */3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'sh scrape_maints.sh'
 0 */4 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmaints'
 
-0 0 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadhistory'
-0 1 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake cachehistory'
+30 0 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadhistory'
+0 1 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake cleanhistory'
+30 1 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake cachehistory'
