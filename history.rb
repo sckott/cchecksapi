@@ -226,7 +226,7 @@ def cache_history
 
   # delete the data from the SQL DB for tod_ay date
   # x.delete_all(date_updated: data[0]['date_updated'])
-  Hist.where(date_updated: data[0]['date_updated']).delete_all; nil
+  # Hist.where(date_updated: data[0]['date_updated']).delete_all; nil
 
   # delete ndjson file on disk
   File.delete(json_file)
