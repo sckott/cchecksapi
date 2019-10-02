@@ -3,8 +3,10 @@ require 'sinatra'
 require 'multi_json'
 require "sinatra/multi_route"
 require 'yaml'
+require 'date'
 require "mongo"
 require 'active_record'
+require 'aws-sdk-s3'
 
 require_relative 'badges'
 require_relative 'funs'
@@ -31,6 +33,10 @@ $cks_history = mongo[:checks_history]
 $config = YAML::load_file(File.join(__dir__, 'config.yaml'))
 ActiveSupport::Deprecation.silenced = true
 ActiveRecord::Base.establish_connection($config['db']['cchecks'])
+
+Aws.config[:region] = 'us-west-2'
+Aws.config[:credentials] = Aws::Credentials.new(ENV.fetch('CCHECKS_S3_WRITE_ACCESS_KEY'), ENV.fetch('CCHECKS_S3_WRITE_SECRET_KEY'))
+$s3_x = Aws::S3::Resource.new(region: 'us-west-2')
 
 class CCAPI < Sinatra::Application
   register Sinatra::MultiRoute
@@ -83,6 +89,13 @@ class CCAPI < Sinatra::Application
       # headers 'Expires' => sec
       headers 'Cache-Control' => 'max-age=300, public'
     end
+
+    def headers_s3link
+      headers "Content-Type" => "application/json; charset=utf8"
+      headers "Access-Control-Allow-Methods" => "HEAD, GET"
+      headers "Access-Control-Allow-Origin" => "*"
+      cache_control :public, :must_revalidate, :max_age => 60
+    end
   end
 
   ## routes
@@ -106,6 +119,7 @@ class CCAPI < Sinatra::Application
         "/pkgs (GET)",
         "/pkgs/:pkg_name: (GET)",
         "/pkgs/:pkg_name:/history (GET)",
+        "/history/:date (GET)",
         "/maintainers (GET)",
         "/maintainers/:email: (GET)",
         "/badges/:type/:package (GET)",
@@ -276,7 +290,17 @@ class CCAPI < Sinatra::Application
     end
   end
 
-
+  get '/history/:date' do
+    headers_s3link
+    begin
+      path = Date.parse(params[:date]).strftime("%Y-%m-%d") + ".json.gz"
+      z = $s3_x.bucket("cchecks-history").object(path)
+      url = z.presigned_url(:get)
+      redirect url, { error: nil, message: "you hit a redirect. use the link in 'Location' header; or follow redirects" }.to_json
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
 
 
   # prevent some HTTP methods

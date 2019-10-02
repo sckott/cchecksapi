@@ -17,6 +17,7 @@
     * [packages](#packages)
     * [package by name](#package-by-name)
     * [package by name (history)](#package-by-name-history)
+    * [history](#history)
     * [maintainers](#maintainers)
     * [maintainer by email](#maintainer-summary-by-email)
     * [badges summary](#badges-summary)
@@ -299,7 +300,13 @@ Get heartbeat for the cchecks API [GET]
         "/docs (GET)",
         "/heartbeat (GET)",
         "/pkgs (GET)",
-        "/pkgs/:pkg_name: (GET)"
+        "/pkgs/:pkg_name: (GET)",
+        "/pkgs/:pkg_name:/history (GET)",
+        "/history/:date (GET)",
+        "/maintainers (GET)",
+        "/maintainers/:email: (GET)",
+        "/badges/:type/:package (GET)",
+        "/badges/:flavor/:package (GET)"
       ]
     }
     ```
@@ -343,9 +350,25 @@ Get last 30 days of checks for a package name.
 
 Default limit of 10
 
-For the history routes, we continually keep historical checks for each package. This may be changed at some point (See [issue #30](https://github.com/ropenscilabs/cchecksapi/issues/30) for discussion)
+For the history routes, we continually keep historical checks for each package. On this route only up to 30 days are available. See the `/history/{date}` route for older data.
 
 + Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
+### history
+
+> GET [/history/{date}]
+
+Get link for compressed json file of historical CRAN checks results for a given date - across all packages.
+
+On success, you'll get a 302 redirect, with a temporary link (expires in 15 minutes) for the Amazon S3 file in the `Location` response header.
+
+Follow redirects to make sure that you are redirected to the link. 
+
+If you don't follow redirects, you'll get a JSON body telling you to redirect to the `Location` header link.
+
++ Response 302 (application/json)
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
