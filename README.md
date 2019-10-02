@@ -26,6 +26,19 @@ tech:
     * poplulates the history routes once a day
 * for the history routes, we keep the last 30 days of checks for each package; each day we purge any checks data older than 30 days
 
+## JSON API routes
+
+- `/docs`
+- `/heartbeat`
+- `/pkgs`
+- `/pkgs/:pkg_name:`
+- `/pkgs/:pkg_name:/history`
+- `/history/:date:`
+- `/maintainers`
+- `/maintainers/:email:`
+- `/badges/:type/:package:`
+- `/badges/:flavor/:package:`
+
 ## JSON API examples
 
 To replicate the examples below as is, you'll need curl (which you likely have), and jq (<https://stedolan.github.io/jq/>) which you may not have. You can also just copy/paste the URLs into your browser 😏
