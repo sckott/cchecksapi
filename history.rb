@@ -208,8 +208,10 @@ def cache_history
   tod_ay = DateTime.now.strftime("%Y-%m-%d")
   json_file = DateTime.now.strftime("%Y-%m-%d") + ".json"
   nd = NDJSON::Generator.new json_file
+  # write each package's data to disk
+  # - before writing, remove auto-generated id column
   data.each do |x|; nil
-    nd.write(x); nil
+    nd.write(x.except("id")); nil
   end; nil
 
   # compress json file
@@ -217,16 +219,12 @@ def cache_history
   json_file_gz = json_file + ".gz"
 
   # upload
-  obj = $s3_x.bucket("cchecks-history").object(json_file_gz)
+  # - set content-type: application/json
+  # - set content-encoding: gzip
+  obj = $s3_x.bucket("cchecks-history").object(json_file_gz,
+    :content_type => "application/json",
+    :content_encoding => "gzip")
   obj.upload_file(json_file_gz)
-
-  # get secure link
-  # ob = x.bucket("cchecks-history").object(json_file_gz)
-  # ob.presigned_url(:get, expires_in: 1200)
-
-  # delete the data from the SQL DB for tod_ay date
-  # x.delete_all(date_updated: data[0]['date_updated'])
-  # Hist.where(date_updated: data[0]['date_updated']).delete_all; nil
 
   # delete ndjson file on disk
   File.delete(json_file)
