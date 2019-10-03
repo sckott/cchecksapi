@@ -221,10 +221,10 @@ def cache_history
   # upload
   # - set content-type: application/json
   # - set content-encoding: gzip
-  obj = $s3_x.bucket("cchecks-history").object(json_file_gz,
+  obj = $s3_x.bucket("cchecks-history").object(json_file_gz)
+  obj.upload_file(json_file_gz,
     :content_type => "application/json",
     :content_encoding => "gzip")
-  obj.upload_file(json_file_gz)
 
   # delete ndjson file on disk
   File.delete(json_file)
