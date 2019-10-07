@@ -123,7 +123,7 @@ class CCAPI < Sinatra::Application
         "/maintainers (GET)",
         "/maintainers/:email: (GET)",
         "/badges/:type/:package (GET)",
-        "/badges/:flavor/:package (GET)"
+        "/badges/flavor/:flavor/:package (GET)"
       ]
     })
   end
