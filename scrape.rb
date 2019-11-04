@@ -29,8 +29,14 @@ def scrape_all
   # pkgs = cran_packages;
   # resp_onses = async_get(pkgs);
   htmls = list_htmls("/tmp/htmls/*");
+
+  # clean out any bad files
+  pat = "/tmp/htmls/https-cloud-r-project-org-web-checks-check-results-html"
+  htmls.reject! { |z| z.match(/results-html$/) }; nil
+  # htmls.length
+
   # out = Parallel.map(resp_onses, in_processes: 2) { |e| scrape_pkg_body(e) };
-  out = Parallel.map(htmls, in_processes: 2) { |e| scrape_pkg_body(e) };
+  out = Parallel.map(htmls, in_processes: 2) { |e| scrape_pkg_body(e) }; nil
   if $cks.count > 0
     $cks.drop
     $cks = $mongo[:checks]
@@ -55,7 +61,7 @@ def scrape_pkg_body(z)
   
   sub_str = "https-cloud-r-project-org-web-checks-check-results-"
   pkg = z.split('/').last.sub("-html", "").sub(sub_str, "").sub("-", ".")
-  # puts pkg 
+  # puts pkg
   # pkg = z.to_hash[:url].to_s.sub('https://cloud.r-project.org/web/checks/check_results_', '').sub('.html', '')
   # if !z.success?
   #   return {"package" => pkg, "checks" => nil}
