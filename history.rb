@@ -45,6 +45,7 @@ class HistoryName < ActiveRecord::Base
 
     select(fields.join(', '))
       .where(package: params[:name])
+      .order('date_updated DESC')
       .limit(params[:limit] || 10)
       .offset(params[:offset])
   end
