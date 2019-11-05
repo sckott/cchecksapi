@@ -346,7 +346,7 @@ Get package by name.
 
 > GET [/pkgs/{package_name}/history]
 
-Get last 30 days of checks for a package name.
+Get last 30 days of checks for a package name, sorted by date in descending order
 
 Default limit of 10
 

@@ -107,7 +107,7 @@ curl https://cranchecks.info/pkgs/secret  | jq .data.check_details
 }
 ```
 
-Optionally see the check details for previous CRAN checks in the `/history` route (up to 30 days prior to the current date) (though as of this writing we have only about 10 days)
+Optionally see the check details for previous CRAN checks in the `/history` route (up to 30 days prior to the current date)
 
 ```sh
 curl https://cranchecks.info/pkgs/secret/history | jq '.data.history[].check_details'
