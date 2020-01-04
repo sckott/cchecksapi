@@ -112,7 +112,7 @@ class CCAPI < Sinatra::Application
   get "/heartbeat/?" do
     headers_get
     $ip = request.ip
-    { routes: API.routes["GET"].map{ |w| w[0].to_s } }.to_json
+    { routes: CCAPI.routes["GET"].map{ |w| w[0].to_s } }.to_json
   end
 
   get '/pkgs' do
