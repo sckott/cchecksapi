@@ -109,23 +109,10 @@ class CCAPI < Sinatra::Application
     redirect 'https://github.com/ropensci/cchecksapi/blob/master/docs/api_docs.md', 301
   end
 
-  get "/heartbeat" do
+  get "/heartbeat/?" do
     headers_get
     $ip = request.ip
-    return JSON.pretty_generate({
-      "routes" => [
-        "/docs (GET)",
-        "/heartbeat (GET)",
-        "/pkgs (GET)",
-        "/pkgs/:pkg_name: (GET)",
-        "/pkgs/:pkg_name:/history (GET)",
-        "/history/:date (GET)",
-        "/maintainers (GET)",
-        "/maintainers/:email: (GET)",
-        "/badges/:type/:package (GET)",
-        "/badges/flavor/:flavor/:package (GET)"
-      ]
-    })
+    { routes: API.routes["GET"].map{ |w| w[0].to_s } }.to_json
   end
 
   get '/pkgs' do
