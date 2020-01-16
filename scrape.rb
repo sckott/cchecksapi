@@ -60,7 +60,7 @@ def scrape_pkg_body(z)
   base_url = 'https://cloud.r-project.org/web/checks/check_results_%s.html'
   
   sub_str = "https-cloud-r-project-org-web-checks-check-results-"
-  pkg = z.split('/').last.sub("-html", "").sub(sub_str, "").sub("-", ".")
+  pkg = z.split('/').last.sub("-html", "").sub(sub_str, "").gsub("-", ".")
   # puts pkg
   # pkg = z.to_hash[:url].to_s.sub('https://cloud.r-project.org/web/checks/check_results_', '').sub('.html', '')
   # if !z.success?
