@@ -16,3 +16,4 @@ notes-sqldbstuff.txt
 cache-history-manual.sh
 history-manual.rb
 sql_fixes.sql
+users.sql
