@@ -11,6 +11,7 @@ require 'aws-sdk-s3'
 require_relative 'badges'
 require_relative 'funs'
 require_relative 'history'
+require_relative 'notifications'
 
 # mongo
 mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
@@ -52,8 +53,8 @@ class CCAPI < Sinatra::Application
 
   ## configuration
   configure do
-    set :raise_errors, false
-    set :show_exceptions, false
+    set :raise_errors, true
+    set :show_exceptions, true
     set :strict_paths, false
     set :server, :puma
     set :protection, :except => [:json_csrf]
@@ -81,6 +82,13 @@ class CCAPI < Sinatra::Application
       cache_control :public, :must_revalidate, :max_age => 60
     end
 
+    def headers_post
+      headers "Content-Type" => "application/json; charset=utf8"
+      headers "Access-Control-Allow-Methods" => "POST"
+      headers "Access-Control-Allow-Origin" => "*"
+      cache_control :public, :must_revalidate, :max_age => 60
+    end
+
     def badge_headers_get
       fivemin = Time.at(Time.now.to_i + (5 * 60)).httpdate
       # sec = Time.at(Time.now.to_i + 1).httpdate
@@ -95,6 +103,12 @@ class CCAPI < Sinatra::Application
       headers "Access-Control-Allow-Methods" => "HEAD, GET"
       headers "Access-Control-Allow-Origin" => "*"
       cache_control :public, :must_revalidate, :max_age => 60
+    end
+
+    def rule_not_found(params)
+      status 400
+      headers "Content-Type" => 'application/json'
+      { error: { message: "rule %s not found" % params[:id]}, data: nil }.to_json
     end
   end
 
@@ -289,9 +303,77 @@ class CCAPI < Sinatra::Application
     end
   end
 
+  get '/notifications' do
+    { message: "come back later" }.to_json
+  end
+
+  get '/notifications/rules' do
+    begin
+      users = user_rule_list()
+      all_rules = []
+      users.each do |x|
+        all_rules << user_rule_find(email: x)
+      end
+      { error: nil, data: all_rules.flatten }.to_json
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
+
+  get '/notifications/rules/:id' do
+    begin
+      res = Users.id(id: params[:id])
+      if res.empty?
+        rule_not_found(params)
+      else
+        { error: nil, data: res }.to_json
+      end
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
+
+  delete '/notifications/rules/:id' do
+    res = Users.id(id: params[:id])
+    if res.empty?
+      rule_not_found(params)
+    else
+      begin
+        user_rule_delete(id: params[:id])
+        status 204
+        headers "Access-Control-Allow-Methods" => "DELETE"
+      rescue Exception => e
+        halt 400, { error: { message: e.message }, data: nil }.to_json
+      end
+    end
+  end
+
+  post '/notifications/rules' do
+    headers_post
+    begin
+      request.body.rewind
+      data = MultiJson.load(request.body.read)
+      data.is_a?(Array) ? nil : raise(TypeError.new "body must be a JSON Array")
+      data.map{|z| z.is_a? Hash}.all? ? nil : raise(TypeError.new "each element in body Array must be a JSON object")
+      # lint keys in each rule
+      data.each do |w|
+        ck1 = ['email', 'package'].map {|b| w.has_key? b and not w[b].nil?}.all?
+        ck1 ? nil : raise(TypeError.new "each JSON object must have keys 'email' and 'package'")
+        ck2 = ((w.has_key? "regex" and not w["regex"].nil?) or (['status', 'time', 'platforms'].map{|x| w.keys.include? x}.any? and not w.select {|k,_| ['status', 'time', 'platforms'].include? k}.empty?))
+        ck2 ? nil : raise(TypeError.new "each JSON object must have either 'regex' or one or more of 'status', 'time', 'platforms'")
+      end
+      # load each rule
+      data.each do |w|
+        user_rule_add(email: w["email"], package: w["package"], rules: [w])
+      end
+      { error: nil, data: "success" }.to_json
+    rescue Exception => e
+      halt 400, { error: { message: e.message }, data: nil }.to_json
+    end
+  end
 
   # prevent some HTTP methods
-  route :post, :put, :delete, :copy, :patch, :options, :trace, '/*' do
+  route :put, :delete, :copy, :patch, :options, :trace, '/*' do
     halt 405
   end
 

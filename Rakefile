@@ -1,6 +1,20 @@
 require_relative 'scrape'
 require_relative 'scrape_maintainer'
 require_relative 'history'
+require_relative 'notifications'
+
+# require 'bundler/gem_tasks'
+require 'rake/testtask'
+
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.test_files = FileList['test/test_*.rb']
+  t.verbose = true
+  t.warning = false
+end
+
+desc 'Run tests'
+task default: :test
 
 desc "load cran checks results into mongo"
 task :loadmongo do
@@ -42,6 +56,15 @@ desc "clean history"
 task :cleanhistory do
   begin
     delete_history_older_than_30_days()
+  rescue Exception => e
+    raise e
+  end
+end
+
+desc "run notifications"
+task :notifications do
+  begin
+    notify()
   rescue Exception => e
     raise e
   end

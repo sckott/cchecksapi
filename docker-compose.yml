@@ -21,6 +21,22 @@ mariadb:
     - MYSQL_ROOT_PASSWORD=root
   restart: always
 
+redis:
+  image: redis:latest
+  restart: always
+  volumes:
+    - $HOME/data/redis:/data
+  command:  redis-server --appendonly yes
+
+sidekiq:
+  build: .
+  command: bundle exec sidekiq -r ./job.rb
+  links:
+    - redis
+  environment:
+    REDIS_HOST: redis
+    SENDGRID_KEY: ${SENDGRID_KEY}
+
 api:
   build: .
   ports:
@@ -28,12 +44,15 @@ api:
   links:
     - mongo
     - mariadb
+    - redis
+    - sidekiq
   restart: always
   environment:
     CCHECKS_MONGO_USER: ${CCHECKS_MONGO_USER}
     CCHECKS_MONGO_PWD: ${CCHECKS_MONGO_PWD}
     CCHECKS_S3_WRITE_ACCESS_KEY: ${AWS_S3_WRITE_ACCESS_KEY}
     CCHECKS_S3_WRITE_SECRET_KEY: ${AWS_S3_WRITE_SECRET_KEY}
+    SENDGRID_KEY: ${SENDGRID_KEY}
   volumes:
     - $HOME/tmp/htmls:/tmp/htmls
     - $HOME/tmp/mainthtmls:/tmp/mainthtmls
