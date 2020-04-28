@@ -1,6 +1,7 @@
 source "https://rubygems.org/"
-ruby "2.6.0"
+ruby "2.7.0"
 
+gem 'bundler'
 gem 'rake', '~> 12.3', '>= 12.3.2'
 gem 'faraday', '~> 0.15.4'
 gem 'multi_json', '~> 1.13', '>= 1.13.1'
@@ -16,3 +17,8 @@ gem 'activerecord', '~> 5.2', '>= 5.2.3'
 gem 'aws-sdk', '~> 3.0', '>= 3.0.1'
 gem 'aws-sdk-s3', '~> 1.42'
 gem 'ndjson', '~> 1.0'
+gem 'sendgrid-ruby', '~> 6.1', '>= 6.1.4'
+gem 'sidekiq', '~> 6.0', '>= 6.0.7'
+gem 'sidekiq-status'
+gem 'clockwork', '~> 2.0', '>= 2.0.4'
+gem 'redis', '~> 4.1', '>= 4.1.3'

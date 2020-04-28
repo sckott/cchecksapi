@@ -1,6 +1,9 @@
-FROM ruby:2.6.0
+FROM ruby:2.7.0
 
 MAINTAINER Scott Chamberlain <sckott@protonmail.com>
+
+RUN apt-get update \
+  && apt-get install nano
 
 RUN gem install pry \
   && pry --version

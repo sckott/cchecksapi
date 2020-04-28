@@ -17,3 +17,7 @@ cache-history-manual.sh
 history-manual.rb
 sql_fixes.sql
 users.sql
+sidekiq_notes.rb
+notifications_draft_work.rb
+notes_setup_new.txt
+notifications_curl_examples.sh
