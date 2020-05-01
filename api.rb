@@ -316,10 +316,16 @@ class CCAPI < Sinatra::Application
       email = User.where(token: token).first.as_json["email"]
       if email == ENV.fetch('CCHECKS_SUPER_USER')
         # super user gets all users rules
-        rules = rules_find()
+        rules = rules_find().as_json
+        if rules.has_key? "scope"
+          rules = rules["scope"]
+        end
       else
-        rules = rules_find(email: email)
-      end 
+        rules = rules_find(email: email).as_json
+        if rules.length > 0
+          rules.map { |e| e.delete('user_id') }
+        end
+      end
       { error: nil, data: rules }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
@@ -342,6 +348,8 @@ class CCAPI < Sinatra::Application
       if res.empty?
         rule_not_found(params)
       else
+        res = res.first.as_json
+        res.delete('user_id')
         { error: nil, data: res }.to_json
       end
     rescue Exception => e
