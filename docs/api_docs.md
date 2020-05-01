@@ -23,6 +23,11 @@
     * [badges summary](#badges-summary)
     * [badges worst](#badges-worst)
     * [badges flavor](#badges-flavor)
+    * [notifications token](#notifications-token)
+    * [notifications list](#notifications-list)
+    * [notifications get](#notifications-get)
+    * [notifications create](#notifications-create)
+    * [notifications delete](#notifications-delete)
 * [Examples](#examples)
 
 ## Base URL
@@ -31,13 +36,17 @@
 
 ## HTTP methods
 
-This is a `read only` API. That is, we only allow `GET` (and `HEAD`) requests on this API.
+There are `read only` routes on this API. For nearly all routes we only allow `GET` (and `HEAD`) requests.
 
 Requests of all other types will be rejected with appropriate `405` code.
+
+`POST` requests are only allowed on the `/notifications/rules` route, and
+`DELETE` requests are only allowed on the `/notifications/rule/{id}` route.
 
 ## Response Codes
 
 * 200 (OK) - request good!
+* 204 (No Content) - given on a delete request, indicating success, response body should be empty
 * 302 (Found) - the root `/`, redirects to `/heartbeat`, and `/docs` redirects to these documents
 * 400 (Bad request) - When you have a malformed request, fix it and try again
 * 404 (Not found) - When you request a route that does not exist, fix it and try again
@@ -241,6 +250,34 @@ svg response bodies generally look like:
 </svg>
 ```
 
+### Rule Response bodies
+
+```json
+{
+  "error": null,
+  "data": [
+    {
+      "id": 7,
+      "user_id": 1,
+      "package": "citecorp",
+      "rule_status": "error",
+      "rule_time": 2,
+      "rule_platforms": null,
+      "rule_regex": null
+    },
+    {
+      "id": 8,
+      "user_id": 1,
+      "package": "conditionz",
+      "rule_status": "error",
+      "rule_time": 2,
+      "rule_platforms": null,
+      "rule_regex": null
+    }
+  ]
+}
+```
+
 
 ## Media Types
 
@@ -423,6 +460,70 @@ Get badge for summary of CRAN checks by flavor and package name.
 + Response 200 (image/svg+xml)
     + [Headers](#badge-response-headers)
     + [Body](#response-svg)
+
+### notifications token
+
+> GET [/notifications/token]
+
+Get a token for CRAN checks notifications.
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + Body
+    ```json
+    {
+
+      "email": "your email",
+      "token": "your-new-token"
+    }
+    ```
+
+### notifications list
+
+> GET [/notifications/rules]
+
+List your notifications rules
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#rule-response-bodies)
+
+### notifications get
+
+> GET [/notifications/rules/{id}]
+
+List a single notifications rule by its id
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#rule-response-bodies)
+
+### notifications create
+
+> POST [/notifications/rules]
+
+Create one or more notifications rules
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + Body
+    ```json
+    {
+
+      "error": null,
+      "data": "success"
+    }
+    ```
+
+### notifications delete
+
+> DELETE [/notifications/rules/{id}]
+
+Delete a single notifications rule by its id
+
++ Response 204 (text/plain)
+    + [Headers](#response-headers)
+    + Body: NO CONTENT
 
 
 ## Examples
