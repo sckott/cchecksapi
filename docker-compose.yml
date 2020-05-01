@@ -53,6 +53,7 @@ api:
     CCHECKS_S3_WRITE_ACCESS_KEY: ${AWS_S3_WRITE_ACCESS_KEY}
     CCHECKS_S3_WRITE_SECRET_KEY: ${AWS_S3_WRITE_SECRET_KEY}
     SENDGRID_KEY: ${SENDGRID_KEY}
+    CCHECKS_SUPER_USER: ${CCHECKS_SUPER_USER}
   volumes:
     - $HOME/tmp/htmls:/tmp/htmls
     - $HOME/tmp/mainthtmls:/tmp/mainthtmls
