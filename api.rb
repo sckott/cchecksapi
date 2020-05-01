@@ -314,7 +314,7 @@ class CCAPI < Sinatra::Application
     begin
       token = get_token
       email = User.where(token: token).first.as_json["email"]
-      if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+      if email == ENV.fetch('CCHECKS_SUPER_USER')
         # super user gets all users rules
         rules = rules_find()
       else
@@ -331,7 +331,7 @@ class CCAPI < Sinatra::Application
     begin
       token = get_token
       email = User.where(token: token).first.as_json["email"]
-      if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+      if email == ENV.fetch('CCHECKS_SUPER_USER')
         # super user can access any rule
         res = Rule.where(id: params[:id])
       else
@@ -354,7 +354,7 @@ class CCAPI < Sinatra::Application
     token = get_token
 
     email = User.where(token: token).first.as_json["email"]
-    if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+    if email == ENV.fetch('CCHECKS_SUPER_USER')
       # super user can delete any rule
       res = Rule.where(id: params[:id])
     else
