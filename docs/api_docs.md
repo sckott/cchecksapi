@@ -522,7 +522,6 @@ Create one or more notifications rules
 Delete a single notifications rule by its id
 
 + Response 204 (text/plain)
-    + [Headers](#response-headers)
     + Body: NO CONTENT
 
 
