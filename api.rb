@@ -55,8 +55,8 @@ class CCAPI < Sinatra::Application
 
   ## configuration
   configure do
-    set :raise_errors, true
-    set :show_exceptions, true
+    set :raise_errors, false
+    set :show_exceptions, false
     set :strict_paths, false
     set :server, :puma
     set :protection, :except => [:json_csrf]
