@@ -88,25 +88,10 @@ def arel_empty?(z)
   return z.is_a? Arel::Table
 end
 
-## Users methods
-class Users < ActiveRecord::Base
-  self.table_name = 'users'
-  def self.fetch(email: nil, package: nil, status: nil,
-    platforms: nil, time: nil, regex: nil)
-
-    if [email, package, status, platforms, time, regex].compact.empty?
-      Users.where
-    else
-      x = Users.arel_table
-      rel = x[:email].eq(email) if email
-      rel = (arel_empty?(x) ? x[:package].eq(package) : rel.and(x[:package].eq(package))) if package
-      rel = (arel_empty?(x) ? x[:rule_status].eq(status) : rel.and(x[:rule_status].eq(status))) if status
-      rel = (arel_empty?(x) ? x[:rule_platforms].eq(platforms) : rel.and(x[:rule_platforms].eq(platforms))) if platforms
-      rel = (arel_empty?(x) ? x[:rule_time].eq(time) : rel.and(x[:rule_time].eq(time))) if time
-      rel = (arel_empty?(x) ? x[:rule_regex].eq(regex) : rel.and(x[:rule_regex].eq(regex))) if regex
-      Users.where(rel)
-    end
-  end
+## SQL methods
+class User < ActiveRecord::Base
+  self.table_name = 'user'
+  has_many :rules
   def self.id(id:)
     where(id: id)
   end
@@ -115,26 +100,78 @@ class Users < ActiveRecord::Base
   end
 end
 
-# list all users
-# user_rule_list()
-def user_rule_list
-  Users.list.as_json.pluck('email').uniq
+# Rule.joins(:user).where(user: { email: "myrmecocystus@gmail.com" } )
+class Rule < ActiveRecord::Base
+  self.table_name = 'rule'
+  belongs_to :user
+
+  def self.fetch(email: nil, package: nil, status: nil,
+    platforms: nil, time: nil, regex: nil)
+
+    if [email, package, status, platforms, time, regex].compact.empty?
+      Rule.where
+    else
+      id = nil
+      if email
+        id = User.where(email: email).ids[0] if email
+        if id.nil?
+          return []
+        end
+      end
+      x = Rule.arel_table
+      rel = x[:user_id].eq(id) if id
+      rel = (arel_empty?(x) ? x[:package].eq(package) : rel.and(x[:package].eq(package))) if package
+      rel = (arel_empty?(x) ? x[:rule_status].eq(status) : rel.and(x[:rule_status].eq(status))) if status
+      rel = (arel_empty?(x) ? x[:rule_platforms].eq(platforms) : rel.and(x[:rule_platforms].eq(platforms))) if platforms
+      rel = (arel_empty?(x) ? x[:rule_time].eq(time) : rel.and(x[:rule_time].eq(time))) if time
+      rel = (arel_empty?(x) ? x[:rule_regex].eq(regex) : rel.and(x[:rule_regex].eq(regex))) if regex
+      Rule.where(rel)
+    end
+  end
+  def self.id(id:)
+    where(id: id)
+  end
 end
-# user_rule_find()
-# user_rule_find(email: "myrmecocystus@gmail.com")
-# user_rule_find(email: "myrmecocystus@gmail.com", package: "rgbif")
-# user_rule_find(package: "rgbif")
-# user_rule_find(email: "joe@stuff.com")
-# user_rule_find(status: "note")
-# user_rule_find(status: "error")
-# user_rule_find(status: "error", time: 3)
-# user_rule_find(time: 3)
-# user_rule_find(time: 7)
-# user_rule_find(regex: "install failure")
-def user_rule_find(email: nil, package: nil, status: nil, platforms: nil, time: nil, regex: nil)
-  Users.fetch(email: email, package: package, status: status, platforms: platforms, time: time, regex: regex)
+
+
+# list all users
+# users_list()
+def users_list
+  User.list.as_json.pluck('email').uniq
 end
 # add a user
+# user_add(email: "myrmecocystus@gmail.com", token: "0b834e29e13d59c15810b39d396e53c1")
+# user_get(email: "myrmecocystus@gmail.com")
+def user_add(email:, token:)
+  User.create!(email: email, token: token)
+end
+# get a user by email
+# user_get(email: "myrmecocystus@gmail.com")
+def user_get(email:)
+  User.where(email: email)
+end
+# delete a user
+# BEWARE: deletes any rules associated with that user
+# user_delete(email: "myrmecocystus@gmail.com")
+def user_delete(email:)
+  User.where(email: email).destroy_all
+end
+
+# rules_find()
+# rules_find(email: "myrmecocystus@gmail.com")
+# rules_find(email: "myrmecocystus@gmail.com", package: "rgbif")
+# rules_find(package: "rgbif")
+# rules_find(email: "joe@stuff.com")
+# rules_find(status: "note")
+# rules_find(status: "warn")
+# rules_find(status: "error", time: 3)
+# rules_find(time: 3)
+# rules_find(time: 7)
+# rules_find(regex: "install failure")
+def rules_find(email: nil, package: nil, status: nil, platforms: nil, time: nil, regex: nil)
+  Rule.fetch(email: email, package: package, status: status, platforms: platforms, time: time, regex: regex)
+end
+# add a rule
 # S: 'error', T: 3, P: => 2, R: nil
 # S: 'warn', T: 4, P: => '-solaris', R: nil
 # S: nil, T: nil, P: => nil, R: 'install'
@@ -143,18 +180,20 @@ end
 #   {'status' => 'warn', 'time' => 4, 'platforms' => '-solaris', 'regex' => nil},
 #   {'status' => nil, 'time' => nil, 'platforms' => nil, 'regex' => 'install'}
 # ]
-# user_rule_add(email: 'myrmecocystus@gmail.com', package: 'rgbif', rules: rules)
+# rules_add(email: 'myrmecocystus@gmail.com', package: 'rgbif', rules: rules)
 # spocc_rules = [{'status' => 'error', 'time' => 4, 'platforms' => 5, 'regex' => nil}]
-# user_rule_add(email: 'myrmecocystus@gmail.com', package: 'spocc', rules: spocc_rules)
+# rules_add(email: 'myrmecocystus@gmail.com', package: 'spocc', rules: spocc_rules)
 # my_rules = [{'status' => 'note', 'time' => nil, 'platforms' => nil, 'regex' => nil}]
-# user_rule_add(email: 'myrmecocystus@gmail.com', package: 'charlatan', rules: my_rules)
-def user_rule_add(email:, package:, rules:)
+# rules_add(email: 'myrmecocystus@gmail.com', package: 'charlatan', rules: my_rules)
+# # should fail - email not found
+# rules_add(email: 'myrmecocystus2@gmail.com', package: 'charlatan', rules: my_rules)
+def rules_add(email:, package:, rules:)
+  ug = user_get(email: email).first.as_json
+  raise Exception.new("user with email '%s' not found" % email) unless ug
   rules.each do |w|
-    res=Users.create!(
-      email: email,
+    Rule.create!(
+      user_id: ug['id'],
       package: package,
-      name_first: nil,
-      name_last: nil,
       rule_status: w['status'],
       rule_time: w['time'],
       rule_platforms: w['platforms'],
@@ -162,54 +201,52 @@ def user_rule_add(email:, package:, rules:)
     )
   end
 end
-# user_rules_fetch(email: 'myrmecocystus@gmail.com')
-# rule = [{'status' => 'error', 'time' => 4, 'platforms' => "5", 'regex' => nil}]
-# user_rule_add(email: 'myrmecocystus@gmail.com', package: 'spocc', rules: rule)
-# user_rules_fetch(email: 'myrmecocystus@gmail.com').length # => 4
-
-# user_rule_delete(id: )
-# user_rules_fetch(email: 'myrmecocystus@gmail.com').length # => 3
+# rules_delete(id: )
+# rules_find(email: 'myrmecocystus@gmail.com').length # => 3
 # 
-# user_rule_add(email: 'joe@stuff.com', package: 'aaaaa', rules: [{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}])
-# user_rules_fetch(email: "joe@stuff.com")
-# user_rule_delete(email: 'joe@stuff.com')
-# user_rules_fetch(email: "joe@stuff.com")
+# user_add(email: "joe@stuff.com", token: "b902cd9750f107441b0654319f345aca")
+# rules_add(email: 'joe@stuff.com', package: 'aaaaa', rules: [{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}])
+# rules_find(email: "joe@stuff.com")
+# rules_delete(email: 'joe@stuff.com')
+# rules_find(email: "joe@stuff.com")
 # 
-# user_rule_add(email: 'joe@stuff.com', package: 'aaaaa', rules: [{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}])
-# user_rules_fetch(email: "joe@stuff.com")
-# user_rule_delete(package: 'aaaaa')
-# user_rules_fetch(email: "joe@stuff.com")
+# rules_add(email: 'joe@stuff.com', package: 'aaaaa', rules: [{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}])
+# rules_find(email: "joe@stuff.com")
+# rules_delete(package: 'aaaaa')
+# rules_find(email: "joe@stuff.com")
 #
-# by id
-# user_rule_add(email: 'joe@the.com', package: 'bbb', rules: [{'status' => nil, 'time' => nil, 'platforms' => nil, 'regex' => "cheese"}])
-# user_rules_fetch(email: "joe@the.com")
-# id = user_rule_find(regex: "cheese").ids[0]
-# user_rule_delete(id: id)
-# user_rules_fetch(email: "joe@the.com")
-# user_rules_fetch(id: id)
-def user_rule_delete(email: nil, package: nil, id: nil)
+# # by id
+# rules_add(email: 'joe@stuff.com', package: 'bbb', rules: [{'status' => nil, 'time' => nil, 'platforms' => nil, 'regex' => "cheese"}])
+# rules_find(email: "joe@stuff.com")
+# id = rules_find(regex: "cheese").ids[0]
+# rules_delete(id: id)
+# rules_find(email: "joe@stuff.com")
+# Rule.id(id: id)
+def rules_delete(email: nil, package: nil, id: nil)
   if id.nil?
     if not email.nil? and package.nil?
-      Users.where(email: email).destroy_all
+      ug = user_get(email: email).first.as_json
+      raise Exception.new("user with email '%s' not found" % email) unless ug
+      rules_find(email: email).destroy_all
     elsif email.nil? and not package.nil?
-      Users.where(package: package).destroy_all
+      Rule.where(package: package).destroy_all
     end
   else
-    Users.where(id: id).destroy_all
+    Rule.where(id: id).destroy_all
   end
 end
 ########################################
 
-# Rule.new('WARN')
-# Rule.new('NOTE')
-# Rule.new('ERROR')
-# x = Rule.new('ERROR')
+# CheckRule.new('WARN')
+# CheckRule.new('NOTE')
+# CheckRule.new('ERROR')
+# x = CheckRule.new('ERROR')
 # some_check = {"checks" => {"status" => "ERROR"}}
 # x.check some_check
 # some_check = {"checks" => {"status" => "WARN"}}
 # x.check some_check
-# Rule.new('ERROR', 'r-release-windows-ix86+x86_64')
-class Rule
+# CheckRule.new('ERROR', 'r-release-windows-ix86+x86_64')
+class CheckRule
   attr_accessor :package, :status, :flavor, :flavor_original, :time, :regex, :doc, :docfirst
   def initialize(rule, doc)
     @package = rule["package"]
@@ -340,15 +377,20 @@ def recently_sent?(x)
 end
 
 def notify
-  users = user_rule_list()
+  users = users_list()
   users.each do |x|
-    rules = user_rule_find(email: x)
+    rules = rules_find(email: x)
+    next unless rules
     rules.each do |rule|
       # rule = rules[0]
       doc = history_query({ name: rule["package"] });
-      rl = Rule.new(rule, doc);
-      if rl.check and not recently_sent?(rl)
-        CchecksEmail.perform_in(5.minutes, x, rl.package, rl.status, rl.flavor_original,
+      rl = CheckRule.new(rule, doc);
+      recsent = recently_sent?(rl)
+      if recsent
+        Sidekiq::logger.info "rule " + ("[ %s ]" % rl.report(x)["rule"] || "[ unknown ]") + " was recently sent"
+      end
+      if rl.check and not recsent
+        CchecksRuleReportEmail.perform_in(5.minutes, x, rl.package, rl.status, rl.flavor_original,
           rl.time, rl.regex, doc[:history][0]['date_updated'].to_s)
       end
     end

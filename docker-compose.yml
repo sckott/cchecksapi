@@ -4,7 +4,7 @@ mongo:
     - $HOME/data/mongodb:/data/db
   restart: always
   ports:
-    - "27017:27017"
+    - "127.0.0.1::27017"
   environment:
     AUTH: "yes"
     MONGODB_ADMIN_USER: ${CCHECKS_MONGO_USER}

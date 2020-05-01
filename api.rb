@@ -7,11 +7,13 @@ require 'date'
 require "mongo"
 require 'active_record'
 require 'aws-sdk-s3'
+require 'email_address'
 
 require_relative 'badges'
 require_relative 'funs'
 require_relative 'history'
 require_relative 'notifications'
+require_relative 'email'
 
 # mongo
 mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
@@ -110,6 +112,10 @@ class CCAPI < Sinatra::Application
       headers "Content-Type" => 'application/json'
       { error: { message: "rule %s not found" % params[:id]}, data: nil }.to_json
     end
+
+    def not_authorized(x)
+      halt 401, {'Content-Type' => 'application/json', "WWW-Authenticate" => "Bearer"}, { error: { message: x }, data: nil }.to_json
+    end
   end
 
   ## routes
@@ -126,7 +132,7 @@ class CCAPI < Sinatra::Application
   get "/heartbeat/?" do
     headers_get
     $ip = request.ip
-    { routes: CCAPI.routes["GET"].map{ |w| w[0].to_s } }.to_json
+    { routes: CCAPI.routes["GET"].map{ |w| w[0].to_s }.select {|z| !z.match?(/token/)} }.to_json
   end
 
   get '/pkgs' do
@@ -303,26 +309,36 @@ class CCAPI < Sinatra::Application
     end
   end
 
-  get '/notifications' do
-    { message: "come back later" }.to_json
-  end
-
   get '/notifications/rules' do
+    authorized?
     begin
-      users = user_rule_list()
-      all_rules = []
-      users.each do |x|
-        all_rules << user_rule_find(email: x)
-      end
-      { error: nil, data: all_rules.flatten }.to_json
+      token = get_token
+      email = User.where(token: token).first.as_json["email"]
+      if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+        # super user gets all users rules
+        rules = rules_find()
+      else
+        rules = rules_find(email: email)
+      end 
+      { error: nil, data: rules }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
     end
   end
 
   get '/notifications/rules/:id' do
+    authorized?
     begin
-      res = Users.id(id: params[:id])
+      token = get_token
+      email = User.where(token: token).first.as_json["email"]
+      if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+        # super user can access any rule
+        res = Rule.where(id: params[:id])
+      else
+        user_id = User.where(token: token).first.as_json["id"]
+        res = Rule.where(user_id: user_id, id: params[:id])
+      end
+
       if res.empty?
         rule_not_found(params)
       else
@@ -334,12 +350,23 @@ class CCAPI < Sinatra::Application
   end
 
   delete '/notifications/rules/:id' do
-    res = Users.id(id: params[:id])
+    authorized?
+    token = get_token
+
+    email = User.where(token: token).first.as_json["email"]
+    if email == "myrmecocystus@gmail.com" # replaceme: ENV.fetch("CCHECKS_SUPER_USER")
+      # super user can delete any rule
+      res = Rule.where(id: params[:id])
+    else
+      user_id = User.where(token: token).first.as_json["id"]
+      res = Rule.where(user_id: user_id, id: params[:id])
+    end
+
     if res.empty?
       rule_not_found(params)
     else
       begin
-        user_rule_delete(id: params[:id])
+        rules_delete(id: params[:id])
         status 204
         headers "Access-Control-Allow-Methods" => "DELETE"
       rescue Exception => e
@@ -349,6 +376,7 @@ class CCAPI < Sinatra::Application
   end
 
   post '/notifications/rules' do
+    authorized?
     headers_post
     begin
       request.body.rewind
@@ -357,14 +385,17 @@ class CCAPI < Sinatra::Application
       data.map{|z| z.is_a? Hash}.all? ? nil : raise(TypeError.new "each element in body Array must be a JSON object")
       # lint keys in each rule
       data.each do |w|
-        ck1 = ['email', 'package'].map {|b| w.has_key? b and not w[b].nil?}.all?
-        ck1 ? nil : raise(TypeError.new "each JSON object must have keys 'email' and 'package'")
+        ck1 = (w.has_key?('package') and not w['package'].nil?)
+        ck1 ? nil : raise(TypeError.new "each JSON object must have key 'package'")
         ck2 = ((w.has_key? "regex" and not w["regex"].nil?) or (['status', 'time', 'platforms'].map{|x| w.keys.include? x}.any? and not w.select {|k,_| ['status', 'time', 'platforms'].include? k}.empty?))
         ck2 ? nil : raise(TypeError.new "each JSON object must have either 'regex' or one or more of 'status', 'time', 'platforms'")
       end
+      # get email
+      token = get_token
+      email = User.where(token: token).first.as_json["email"]
       # load each rule
       data.each do |w|
-        user_rule_add(email: w["email"], package: w["package"], rules: [w])
+        rules_add(email: email, package: w["package"], rules: [w])
       end
       { error: nil, data: "success" }.to_json
     rescue Exception => e
@@ -372,9 +403,76 @@ class CCAPI < Sinatra::Application
     end
   end
 
+  # tokens
+  def get_token
+    return env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
+  end
+
+  def valid_email?(email)
+    raise Exception.new("an email must be given") unless not email.nil?
+    res = EmailAddress.error email
+    if not res.nil?
+      if res.empty?
+        res = "email string given doesn't appear to be an email address"
+      end
+      not_authorized(res)
+    end
+  end
+
+  def token_get(email)
+    valid_email? email
+    res = user_get(email: email).first
+    return res
+  end
+
+  def token_make(email)
+    valid_email? email
+    tg = token_get(email)
+    if tg.nil?
+      tok = SecureRandom.hex
+      user_add(email: email, token: tok)
+      CchecksTokenEmail.perform_async(email, tok)
+      return user_get(email: email).first
+    else
+      return tg
+    end
+  end
+
+  def token_valid?(x)
+    if User.where(token: x).count < 1
+      raise Exception.new("token not found; get a token first with the /notifications/token route")
+    end
+  end
+
+  def authorized?
+    tok = env.fetch('HTTP_AUTHORIZATION', '')
+    if tok.nil?
+      not_authorized('A token must be given in the Authorization header')
+    else
+      tok = tok.slice(7..-1)
+    end
+
+    begin
+      token_valid? tok
+    rescue Exception => e
+      not_authorized(e.message)
+    end
+
+    return true
+  end
+
+  get '/notifications/token/?' do
+    begin
+      tok = token_make(params[:email])
+      content_type :json
+      tok.to_json
+    rescue Exception => e
+      halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
+    end
+  end
+
   # prevent some HTTP methods
   route :put, :delete, :copy, :patch, :options, :trace, '/*' do
     halt 405
   end
-
 end

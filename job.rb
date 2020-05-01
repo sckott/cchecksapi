@@ -20,7 +20,7 @@ Sidekiq.configure_client do |config|
   Sidekiq::Status.configure_client_middleware config, expiration: 432000 # 5 days
 end
 
-class CchecksEmail
+class CchecksRuleReportEmail
   include Sidekiq::Worker
   include Sidekiq::Status::Worker
 
@@ -28,6 +28,16 @@ class CchecksEmail
     email = email_prepare(to: to, pkg: pkg, status: status,
       flavor: flavor, time: time, regex: regex,
       check_date_time: check_date_time)
+    email_send(email)
+  end
+end
+
+class CchecksTokenEmail
+  include Sidekiq::Worker
+  include Sidekiq::Status::Worker
+
+  def perform(to, token)
+    email = token_email_prepare(to: to, token: token)
     email_send(email)
   end
 end
