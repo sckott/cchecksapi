@@ -68,7 +68,7 @@ $redis = Redis.new(host: host, port: port)
 ############ SQL methods ############
 def history_query(params)
   d = HistoryName.endpoint(params)
-  raise Exception.new('no results found') if d.length.zero?
+  return nil if d.length.zero?
   dat = d.as_json
   dat.map { |x| x.delete('id') }
   dat.map { |x| x.delete('package') }
@@ -382,16 +382,17 @@ def notify
     rules = rules_find(email: x)
     next unless rules
     rules.each do |rule|
-      # rule = rules[0]
       doc = history_query({ name: rule["package"] });
-      rl = CheckRule.new(rule, doc);
-      recsent = recently_sent?(rl)
-      if recsent
-        Sidekiq::logger.info "rule " + ("[ %s ]" % rl.report(x)["rule"] || "[ unknown ]") + " was recently sent"
-      end
-      if rl.check and not recsent
-        CchecksRuleReportEmail.perform_in(5.minutes, x, rl.package, rl.status, rl.flavor_original,
-          rl.time, rl.regex, doc[:history][0]['date_updated'].to_s)
+      unless doc.nil?
+        rl = CheckRule.new(rule, doc);
+        recsent = recently_sent?(rl)
+        if recsent
+          Sidekiq::logger.info "rule " + ("[ %s ]" % rl.report(x)["rule"] || "[ unknown ]") + " was recently sent"
+        end
+        if rl.check and not recsent
+          CchecksRuleReportEmail.perform_in(5.minutes, x, rl.package, rl.status, rl.flavor_original,
+            rl.time, rl.regex, doc[:history][0]['date_updated'].to_s)
+        end
       end
     end
   end
