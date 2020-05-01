@@ -28,6 +28,21 @@ def email_prepare(to:, pkg:, status:, flavor:, time:, regex:, check_date_time:)
   return mail
 end
 
+# return sendgrid mail object
+# token_email_prepare(to = "myrmecocystus@gmail.com", token="adsf8aos8dfaosdfo8asf8oadf")
+# to = "myrmecocystus@gmail.com"
+# token = 'adsf8aos8dfaosdfo8asf8oadf'
+def token_email_prepare(to:, token:)
+  from = Email.new(email: 'sckott7@gmail.com', name: "CRAN Checks")
+  to = Email.new(email: to)
+  subject = "cranchecks email validation"
+  template_plain = ERB.new(File.read("token_email_template.erb"))
+  plain = template_plain.result_with_hash({ token: token })
+  content_plain = SendGrid::Content.new(type: 'text/plain', value: plain)
+  mail = Mail.new(from, subject, to, content_plain)
+  return mail
+end
+
 # send email, return email response object
 # x: a Mail object from SendGrid, from email_prepare
 def email_send(x)
