@@ -1,6 +1,8 @@
 30 */2 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'sh scrape_pkgs.sh'
 0 */3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmongo'
 
+10 */3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake notifications'
+
 30 */3 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'sh scrape_maints.sh'
 0 */4 * * * /usr/bin/docker exec -u root -d cchecksapi_api_1 sh -c 'rake loadmaints'
 
