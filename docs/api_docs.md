@@ -473,8 +473,8 @@ Get a token for CRAN checks notifications.
     ```json
     {
 
-      "email": "your email",
-      "token": "your-new-token"
+      "error": null,
+      "data": "success, email sent"
     }
     ```
 
