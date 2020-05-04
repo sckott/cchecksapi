@@ -436,14 +436,15 @@ class CCAPI < Sinatra::Application
   def token_make(email)
     valid_email? email
     tg = token_get(email)
-    if tg.nil?
-      tok = SecureRandom.hex
-      user_add(email: email, token: tok)
-      CchecksTokenEmail.perform_async(email, tok)
-      return user_get(email: email).first
-    else
-      return tg
+    # if not nil, delete user, then issue new token next
+    if not tg.nil?
+      tg.destroy
     end
+    # issue new token
+    tok = SecureRandom.hex
+    user_add(email: email, token: tok)
+    CchecksTokenEmail.perform_async(email, tok)
+    return user_get(email: email).first
   end
 
   def token_valid?(x)
@@ -473,7 +474,7 @@ class CCAPI < Sinatra::Application
     begin
       tok = token_make(params[:email])
       content_type :json
-      tok.to_json
+      { error: nil, data: "success, email sent" }.to_json
     rescue Exception => e
       halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
     end
