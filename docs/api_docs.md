@@ -546,21 +546,21 @@ Each rule can have 1 to 4 parameters
 Examples in words, and their equivalents as a Ruby hash
 
 - ERROR for 3 days in a row across 2 or more platforms
- `{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}`
+    `{'status' => 'error', 'time' => 3, 'platforms' => 2, 'regex' => nil}`
 - ERROR for 2 days in a row on all osx platforms
- `{'status' => 'error', 'time' => 2, 'platforms' => "osx", 'regex' => nil}`
+    `{'status' => 'error', 'time' => 2, 'platforms' => "osx", 'regex' => nil}`
 - ERROR for 2 days in a row on all release R versions
- `{'status' => 'error', 'time' => 2, 'platforms' => "release", 'regex' => nil}`
+    `{'status' => 'error', 'time' => 2, 'platforms' => "release", 'regex' => nil}`
 - WARN for 4 days in a row on any platform except Solaris
- `{'status' => 'warn', 'time' => 4, 'platforms' => "-solaris", 'regex' => nil}`
+    `{'status' => 'warn', 'time' => 4, 'platforms' => "-solaris", 'regex' => nil}`
 - WARN for 2 days in a row across 9 or more platforms
- `{'status' => 'warn', 'time' => 2, 'platforms' => 10, 'regex' => nil}`
+    `{'status' => 'warn', 'time' => 2, 'platforms' => 10, 'regex' => nil}`
 - NOTE across all osx platforms
- `{'status' => 'note', 'time' => nil, 'platforms' => "osx", 'regex' => nil}`
+    `{'status' => 'note', 'time' => nil, 'platforms' => "osx", 'regex' => nil}`
 - NOTE
- `{'status' => 'note', 'time' => nil, 'platforms' => nil, 'regex' => nil}`
+    `{'status' => 'note', 'time' => nil, 'platforms' => nil, 'regex' => nil}`
 - error details contain regex 'install'
- `{'status' => nil, 'time' => nil, 'platforms' => nil, 'regex' => "install"}`
+    `{'status' => nil, 'time' => nil, 'platforms' => nil, 'regex' => "install"}`
 
 
 ## Examples
