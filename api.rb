@@ -309,6 +309,35 @@ class CCAPI < Sinatra::Application
     end
   end
 
+  def cc(x)
+    if x.is_a? Hash
+      x.values.length
+    else
+      x
+    end
+  end
+
+  get '/search' do
+    headers_get
+    begin
+      d = Search.endpoint(params)
+      raise Exception.new('no results found') if d.length.zero?
+      dat = d.as_json
+      dat.map { |x| x.delete('id') }
+      dat.map { |x| x['summary'] = MultiJson.load(x['summary']) unless x['summary'].nil? }
+      dat.map { |x| x['checks'] = MultiJson.load(x['checks']) unless x['checks'].nil? }
+      dat.map { |x| x['check_details'] = MultiJson.load(x['check_details']) unless x['check_details'].nil? }
+      dat.map { |x|
+        if !x['check_details'].nil?
+          x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil
+        end
+      }
+      { error: nil, count: cc(d.limit(nil).count(1)), returned: dat.length, data: dat }.to_json
+    rescue Exception => e
+      halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
+    end
+  end
+
   get '/notifications/rules' do
     authorized?
     begin
