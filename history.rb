@@ -51,6 +51,61 @@ class HistoryName < ActiveRecord::Base
   end
 end
 
+def bool?(x)
+  ['true', 'false'].include?(x.to_s.downcase)
+end
+
+def true?(obj)
+  obj.to_s.downcase == "true"
+end
+
+class Search < ActiveRecord::Base
+  self.table_name = 'histories'
+
+  def self.endpoint(params)
+    allowed_fields = %w(package summary checks check_details date_updated)
+
+    if not params[:fields].nil?
+      fields = params[:fields].split(',')
+      fields.each { |x|
+        raise Exception.new('%s not in allowed set' % x) unless allowed_fields.include?(x)
+      }
+    else
+      fields = allowed_fields
+    end
+    # add required fields we want in the output
+    fields = fields.union(['package', 'date_updated'])
+
+    params.delete_if { |k, v| v.nil? || v.empty? }
+
+    params = check_limit_offset(params)
+    raise Exception.new('limit too large (max 50)') unless (params[:limit] || 0) <= 50
+    if !params[:one_each].nil?
+      raise Exception.new('one_each must be a boolean (true/false)') unless bool?(params[:one_each])
+    end
+
+    if params[:package]
+      select(fields.join(', '))
+        .where('MATCH(check_details) AGAINST(?) AND package = ?', params[:q], params[:package])
+        .limit(params[:limit] || 10)
+        .offset(params[:offset])
+    else
+      if true?(params[:one_each])
+        select(fields.join(', '))
+          .where('MATCH(check_details) AGAINST(?)', params[:q])
+          .group(:package)
+          .limit(params[:limit] || 10)
+          .offset(params[:offset])
+      else
+        select(fields.join(', '))
+          .where('MATCH(check_details) AGAINST(?)', params[:q])
+          .limit(params[:limit] || 10)
+          .offset(params[:offset])
+      end
+    end
+  end
+end
+
 class Hist < ActiveRecord::Base
   self.table_name = 'histories'
 end

@@ -18,6 +18,7 @@
     * [package by name](#package-by-name)
     * [package by name (history)](#package-by-name-history)
     * [history](#history)
+    * [search](#search)
     * [maintainers](#maintainers)
     * [maintainer by email](#maintainer-summary-by-email)
     * [badges summary](#badges-summary)
@@ -410,6 +411,18 @@ If you don't follow redirects, you'll get a JSON body telling you to redirect to
     + [Headers](#response-headers)
     + [Body](#response-bodies)
 
+### search
+
+> GET [/search]
+
+Search package history data
+
+Default limit of 10
+
++ Response 200 (application/json)
+    + [Headers](#response-headers)
+    + [Body](#response-bodies)
+
 ### maintainers
 
 > GET [/maintainers]
@@ -633,6 +646,14 @@ curl https://cranchecks.info/pkgs/solrium/ | jq .
         "check_url": "https://www.R-project.org/nosvn/R.check/r-devel-linux-x86_64-debian-clang/solrium-00check.html"
       },
 ...
+```
+
+### /search
+
+```sh
+curl https://cranchecks.info/search?q=memory | jq .
+curl https://cranchecks.info/search?q=memory&fields=check_details,date_updated | jq .
+curl https://cranchecks.info/search?q=memory&fields=package&one_each=true | jq .
 ```
 
 ### /maintainers
