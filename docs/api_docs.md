@@ -308,7 +308,7 @@ We don't use any. Cheers :)
 + offset (integer, optional) Record `number` to start at.
     + Default: `0`
 
-Above parameters can be used only on `/pkgs`, `/maintainers`, and `/pkgs/{package_name}/history`
+Above parameters can be used only on `/pkgs`, `/maintainers`, `/pkgs/{package_name}/history`, and `/search` routes
 
 ## Routes
 
@@ -415,9 +415,15 @@ If you don't follow redirects, you'll get a JSON body telling you to redirect to
 
 > GET [/search]
 
-Search package history data
+Search package history data. This is a full text search ONLY of the output in `check_details` field. 
 
-Default limit of 10
+Parameters:
+
+- `q` (string): full text query, e.g, `q=memory`
+- `package` (string): a package name. limit results to a single package, e.g, `package=taxize`
+- `one_each` (boolean): if `true`, return a single result for each package; useful if you want to find out what packages have match a particular query, and don't care which day that match happened. default: `false`; e.g., `one_each=true`
+- `fields` (string): comma separated string with field to return, e.g., `fields=package,check_details` 
+- `limit/offset`: see [common parameters](#common-parameters)
 
 + Response 200 (application/json)
     + [Headers](#response-headers)
