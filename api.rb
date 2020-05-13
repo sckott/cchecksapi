@@ -159,6 +159,9 @@ class CCAPI < Sinatra::Application
         dat = d.to_a
       end
       raise Exception.new('no results found') if d.nil?
+      dat.map { |x| x.delete('_id') }
+      array = ["package", "url", "date_updated", "summary", "checks", "check_details"]
+      dat = dat.map { |m| array.zip(m.values_at(*array)).to_h }
       { found: lim == 0 ? d : d.count, 
         count: dat.length, 
         offset: params[:offset], 
@@ -174,6 +177,9 @@ class CCAPI < Sinatra::Application
     begin
       d = $cks.find({ package: params[:name] }).first
       raise Exception.new('no results found') if d.nil?
+      d.delete('_id')
+      array = ["package", "url", "date_updated", "summary", "checks", "check_details"]
+      d = array.zip(d.values_at(*array)).to_h
       { error: nil, data: d }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
@@ -204,6 +210,9 @@ class CCAPI < Sinatra::Application
         dat = d.to_a
       end
       raise Exception.new('no results found') if d.nil?
+      dat.map { |x| x.delete('_id') }
+      array = ["email", "name", "url", "date_updated", "table", "packages"]
+      dat = dat.map { |m| array.zip(m.values_at(*array)).to_h }
       { found: lim == 0 ? d : d.count, 
         count: dat.length, 
         offset: params[:offset], 
@@ -219,6 +228,9 @@ class CCAPI < Sinatra::Application
     begin
       d = $maint.find({ email: params[:email] }).first
       raise Exception.new('no results found') if d.nil?
+      d.delete('_id')
+      array = ["email", "name", "url", "date_updated", "table", "packages"]
+      d = array.zip(d.values_at(*array)).to_h
       { error: nil, data: d }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
@@ -290,6 +302,8 @@ class CCAPI < Sinatra::Application
           x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil 
         end
       }
+      array = ["date_updated", "summary", "checks", "check_details"]
+      dat = dat.map { |m| array.zip(m.values_at(*array)).to_h }
       hist = { package: params[:name], history: dat }
       { error: nil, data: hist }.to_json
     rescue Exception => e
@@ -332,6 +346,8 @@ class CCAPI < Sinatra::Application
           x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil
         end
       }
+      array = ["package", "date_updated", "summary", "checks", "check_details"]
+      dat = dat.map { |m| array.zip(m.values_at(*array)).to_h }
       { error: nil, count: cc(d.limit(nil).count(1)), returned: dat.length, data: dat }.to_json
     rescue Exception => e
       halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
