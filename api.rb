@@ -457,10 +457,23 @@ class CCAPI < Sinatra::Application
       token = get_token
       email = User.where(token: token).first.as_json["email"]
       # load each rule
+      res = []
       data.each do |w|
-        rules_add(email: email, package: w["package"], rules: [w])
+        res << rules_add(email: email, package: w["package"], rules: [w])
       end
-      { error: nil, data: "success" }.to_json
+      rule_str = "package:%s, status:%s, flavor:%s, time:%s, regex:%s"
+      result = res.map {|z|
+        rz = z[0]["result"]
+        {
+          "id" => rz[:id],
+          "already_existed" => z[0]["existed"],
+          "rule" => rule_str % [
+            rz[:package], rz[:rule_status], rz[:rule_platforms],
+            rz[:rule_time], rz[:rule_regex]
+          ]
+        }
+      }
+      { error: nil, data: result }.to_json
     rescue Exception => e
       halt 400, { error: { message: e.message }, data: nil }.to_json
     end

@@ -85,7 +85,11 @@ def history_query(params)
 end
 
 def arel_empty?(z)
-  return z.is_a? Arel::Table
+  return false if z.is_a? Arel::Table
+  return false if z.is_a? Arel::Nodes::Equality
+  return false if z.is_a? Arel::Nodes::And
+  return true if z.nil?
+  return true
 end
 
 ## SQL methods
@@ -120,11 +124,12 @@ class Rule < ActiveRecord::Base
       end
       x = Rule.arel_table
       rel = x[:user_id].eq(id) if id
-      rel = (arel_empty?(x) ? x[:package].eq(package) : rel.and(x[:package].eq(package))) if package
-      rel = (arel_empty?(x) ? x[:rule_status].eq(status) : rel.and(x[:rule_status].eq(status))) if status
-      rel = (arel_empty?(x) ? x[:rule_platforms].eq(platforms) : rel.and(x[:rule_platforms].eq(platforms))) if platforms
-      rel = (arel_empty?(x) ? x[:rule_time].eq(time) : rel.and(x[:rule_time].eq(time))) if time
-      rel = (arel_empty?(x) ? x[:rule_regex].eq(regex) : rel.and(x[:rule_regex].eq(regex))) if regex
+      rel = nil unless rel
+      rel = (arel_empty?(rel) ? x[:package].eq(package) : rel.and(x[:package].eq(package))) if package
+      rel = (arel_empty?(rel) ? x[:rule_status].eq(status) : rel.and(x[:rule_status].eq(status))) if status
+      rel = (arel_empty?(rel) ? x[:rule_platforms].eq(platforms) : rel.and(x[:rule_platforms].eq(platforms))) if platforms
+      rel = (arel_empty?(rel) ? x[:rule_time].eq(time) : rel.and(x[:rule_time].eq(time))) if time
+      rel = (arel_empty?(rel) ? x[:rule_regex].eq(regex) : rel.and(x[:rule_regex].eq(regex))) if regex
       Rule.where(rel)
     end
   end
@@ -188,18 +193,32 @@ end
 # # should fail - email not found
 # rules_add(email: 'myrmecocystus2@gmail.com', package: 'charlatan', rules: my_rules)
 def rules_add(email:, package:, rules:)
+  # get user
   ug = user_get(email: email).first.as_json
   raise Exception.new("user with email '%s' not found" % email) unless ug
+  # add each rule
+  out = []
   rules.each do |w|
-    Rule.create!(
-      user_id: ug['id'],
-      package: package,
-      rule_status: w['status'],
-      rule_time: w['time'],
-      rule_platforms: w['platforms'],
-      rule_regex: w['regex']
-    )
+    # check that rule doesn't exist already
+    z = rules_find(email:email, package:package, status:w['status'],
+      platforms:w['platforms'], time:w['time'], regex:w['regex'])
+    if z.empty?
+      # rule doesn't exist, create rule
+      tmp = Rule.create!(
+        user_id: ug['id'],
+        package: package,
+        rule_status: w['status'],
+        rule_time: w['time'],
+        rule_platforms: w['platforms'],
+        rule_regex: w['regex']
+      )
+      out << {"existed" => false, "result" => tmp}
+    else
+      # rule exists, return hash
+      out << {"existed" => true, "result" => z[0]}
+    end
   end
+  return out
 end
 # rules_delete(id: )
 # rules_find(email: 'myrmecocystus@gmail.com').length # => 3
