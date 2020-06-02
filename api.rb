@@ -126,7 +126,7 @@ class CCAPI < Sinatra::Application
 
   get '/docs' do
     headers_get
-    redirect 'https://github.com/ropensci/cchecksapi/blob/master/docs/api_docs.md', 301
+    redirect 'https://docs.cranchecks.info/', 301
   end
 
   get "/heartbeat/?" do

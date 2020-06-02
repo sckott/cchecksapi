@@ -3,7 +3,7 @@ CRAN Check Results API
 
 Base URL: <https://cranchecks.info/>
 
-[API Docs](docs/api_docs.md)
+API Docs: <https://docs.cranchecks.info/>
 
 Authentication needed only on notifications routes
 
