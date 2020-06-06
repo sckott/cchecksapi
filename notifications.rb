@@ -345,8 +345,8 @@ class CheckRule
         return false
       else
         begin
-          txt = chkd["output"]
-          return txt.match?(self.regex)
+          txt = chkd['details'].map { |e| e['output'] }
+          return txt.map { |e| e.match?(self.regex) }.any?
         rescue Exception => e
           return false
         end

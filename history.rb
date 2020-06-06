@@ -157,12 +157,11 @@ def history
   # add data to sql db
   ## seems to take about 40 sec
   pkgs.each do |z|
-    # deets = z['check_details'].nil? ? nil : z['check_details']['output'].slice(0,10000)
     if z['check_details'].nil?
       deets = nil
     else
-      if !z['check_details']['output'].nil?
-        z['check_details']['output'] = z['check_details']['output'].slice(0,5000)
+      if !z['check_details']['details'][0]['output'].nil?
+        z['check_details']['details'].map { |e| e['output'] = e['output'].slice(0,5000) }
       end
       deets = z['check_details']
     end

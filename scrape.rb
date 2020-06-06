@@ -94,52 +94,48 @@ def scrape_pkg_body(z)
   res.map { |a| a.map { |k, v| a[k] = v.to_f if k.match(/tinstall|tcheck|ttotal/) } };
 
   # get any free text, the check details
-  pps = html.xpath('//h3/following-sibling::p')
+  pps = html.xpath('//h3/following-sibling::p[contains(.,"Flavor")]')
   if pps.length > 0
-    chdtxt = pps.map { |w| w.text }.join(' ');
+    chdtxt = pps.map { |w| w.text };
 
-    if chdtxt.scan( /Result:.+/).length != 0
-      restxt = chdtxt.scan( /Result:.+/).first
-      output = chdtxt.split(restxt)[1].split(/Flavors?/)[0].strip.gsub(/\u00a0/, '')
-    else
-      output = nil
-    end
+    out = []
+    chdtxt.each { |e|
+      hsh = {}
 
-    if chdtxt.scan( /Version:.+/).length != 0
-      version = chdtxt.scan( /Version:.+/).first.sub('Version:', '').strip
-    else
-      version = nil
-    end
+      if e.scan( /Version:.+/).length != 0
+        hsh["version"] = e.scan( /Version:.+/).first.sub('Version:', '').strip
+      else
+        hsh["version"] = nil
+      end
 
-    if chdtxt.scan( /Check:.+/).length != 0
-      check = chdtxt.scan( /Check:.+/).first.sub('Check:', '').strip
-    else
-      check = nil
-    end
+      if e.scan( /Result:.+/).length != 0
+        restxt = e.scan( /Result:.+/).first
+        hsh["output"] = e.split(restxt)[1].split(/Flavors?/)[0].strip.gsub(/\u00a0/, '')
+      else
+        hsh["output"] = nil
+      end
 
-    if chdtxt.scan( /Result:.+/).length != 0
-      result = chdtxt.scan( /Result:.+/).first.sub('Result:', '').strip
-    else
-      result = nil
-    end
+      if e.scan( /Check:.+/).length != 0
+        hsh["check"] = e.scan( /Check:.+/).first.sub('Check:', '').strip
+      else
+        hsh["check"] = nil
+      end
 
-    if chdtxt.scan( /Flavors?:.+/).length != 0
-      flavors = chdtxt.scan( /Flavors?:.+/).first.sub(/Flavors?:/, '').strip.split(',').map(&:strip)
-    else
-      flavors = nil
-    end
+      if e.scan( /Flavors?:.+/).length != 0
+        hsh["flavors"] = e.scan( /Flavors?:.+/).first.sub(/Flavors?:/, '').strip.split(',').map(&:strip)
+      else
+        hsh["flavors"] = nil
+      end
 
+      out << hsh
+    };
 
     add_issues = ["valgrind", "clang-ASAN", "clang-UBSAN", "gcc-ASAN", "gcc-UBSAN", 
       "noLD", "ATLAS", "MKL", "OpenBLAS", "rchk", "rcnst"]
-    adis = add_issues.map { |x| chdtxt.scan(x) }.flatten
+    adis = add_issues.map { |x| chdtxt.join(' ').scan(x) }.flatten
 
     check_deets = {
-      "version" => version,
-      "check" => check,
-      "result" => result,
-      "output" => output,
-      "flavors" => flavors,
+      "details" => out,
       "additional_issues" => adis
     }
   else
