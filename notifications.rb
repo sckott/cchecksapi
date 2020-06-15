@@ -365,7 +365,7 @@ end
 
 def recently_sent?(x)
   # list all keys
-  keys = $redis.keys
+  keys = $redis.keys;
   # filter to only sidekiq-status redis keys (they are of Redis class hash)
   keys = keys.select { |e| e.match?('sidekiq:status') }
   if keys
@@ -378,12 +378,12 @@ def recently_sent?(x)
         unless tmp['args'].last.empty?
           tmp['crancheck_date'] = Date.parse().to_datetime
         end
-        tmp["rules"] = tmp["args"][2..5]
+        tmp["rules"] = tmp["args"][1..5]
         out << tmp
       end
     end
 
-    roul = [x.status, x.flavor_original, x.time, x.regex]
+    roul = [x.package, x.status, x.flavor_original, x.time, x.regex]
     begin
       out.map { |e| e["rules"] == roul }.any?
     rescue Exception => e
@@ -396,7 +396,7 @@ def recently_sent?(x)
 end
 
 def notify
-  users = users_list()
+  users = users_list();
   users.each do |x|
     rules = rules_find(email: x)
     next unless rules
