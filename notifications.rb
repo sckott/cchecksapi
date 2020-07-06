@@ -416,3 +416,59 @@ def notify
     end
   end
 end
+
+
+# email caching
+class SentEmails < ActiveRecord::Base
+  self.table_name = 'email'
+  def self.exists?(args)
+    where(args: args).exists?
+  end
+end
+
+def gather_emails
+  keys = $redis.keys;
+  # filter to only sidekiq-status redis keys (they are of Redis class hash)
+  keys = keys.select { |e| e.match?('sidekiq:status') };
+  if keys
+    out = []
+    keys.each do |z|
+      tmp = $redis.hgetall(z);
+      unless tmp.nil?
+        tmp['args'] = MultiJson.load(tmp['args'])
+        tmp['email'] = tmp['args'].first
+        tmp['update_date'] = Time.at(tmp['update_time'].to_i).to_datetime
+        unless tmp['args'].last.empty?
+          tmp['crancheck_date'] = Date.parse().to_datetime
+        end
+        tmp["rules"] = tmp["args"][1..5]
+        out << tmp
+      end
+    end
+    return out
+  else
+    return []
+  end
+end
+
+def store_emails
+  emails = gather_emails;
+  # if 'emails' is an empty array, will just pass through w/o doing anything
+  emails.each { |e|
+    # check whether email already in email table
+    # create row if not
+    unless SentEmails.exists?(e['args'].to_json)
+      SentEmails.create!(
+        email: e['email'],
+        args: e['args'].to_json,
+        jid: e['jid'],
+        worker: e['worker'],
+        status: e['status'],
+        update_time: e['update_time'],
+        update_date: e['update_date'],
+        crancheck_date: e['crancheck_date'],
+        rules: e['rules'].to_json
+      )
+    end
+  }
+end

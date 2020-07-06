@@ -70,6 +70,15 @@ task :notifications do
   end
 end
 
+desc "run storeemails"
+task :notifications do
+  begin
+    store_emails()
+  rescue Exception => e
+    raise e
+  end
+end
+
 
 desc "do one"
 task :one do

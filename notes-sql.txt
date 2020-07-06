@@ -20,3 +20,19 @@ ALTER TABLE histories CONVERT TO CHARACTER SET utf8;
 
 # delete temporary container
 docker rm -f <container id>
+
+## email table
+USE cchecks;
+CREATE TABLE email (
+    id              SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    email           VARCHAR(320),
+    args            TEXT,
+    jid             VARCHAR(50),
+    worker          VARCHAR(50),
+    status          VARCHAR(50),
+    update_time     VARCHAR(50),
+    update_date     VARCHAR(50),
+    crancheck_date  VARCHAR(50),
+    rules           TEXT
+);
+ALTER TABLE email CONVERT TO CHARACTER SET utf8;
