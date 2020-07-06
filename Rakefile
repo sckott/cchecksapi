@@ -71,7 +71,7 @@ task :notifications do
 end
 
 desc "run storeemails"
-task :notifications do
+task :storeemails do
   begin
     store_emails()
   rescue Exception => e
