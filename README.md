@@ -231,4 +231,4 @@ Notifications builds on top of CRAN checks - it works by the user defining rules
 The main user interface to cran checks notifications is through the [cchecks][] R package. See its docs for details.
 
 
-[cchecks]: https://github.com/ropenscilabs/cchecks
+[cchecks]: https://github.com/ropensci/cchecks
