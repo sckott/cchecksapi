@@ -131,8 +131,13 @@ def scrape_pkg_body(z)
     };
 
     add_issues = ["valgrind", "clang-ASAN", "clang-UBSAN", "gcc-ASAN", "gcc-UBSAN", 
-      "noLD", "ATLAS", "MKL", "OpenBLAS", "rchk", "rcnst"]
-    adis = add_issues.map { |x| chdtxt.join(' ').scan(x) }.flatten
+      "noLD", "ATLAS", "MKL", "OpenBLAS", "rchk", "rcnst", "M1mac"]
+    addiss = html.xpath('//h3[contains(.,"Additional")]/following-sibling::p//a[.//span]')
+    adis = addiss.map { |e| Hash[*[e.text, e.attribute('href').value]] }
+    # merge any matching keys
+    adis = adis.flat_map(&:entries).group_by(&:first).map{|k,v| Hash[k, v.map(&:last)]}
+    # return nil if empty
+    adis = adis.empty? ? nil : adis
 
     check_deets = {
       "details" => out,
