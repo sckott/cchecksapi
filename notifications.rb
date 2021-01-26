@@ -302,7 +302,7 @@ class CheckRule
         return docs.map { |x| x["summary"].any? }.all?
       else
         docs = self.doc[0..(self.time - 1)];
-        w = docs.map {|x| x['summary'][self.status.downcase]}.compact
+        w = docs.map {|x| x['summary'][self.status.downcase]}.compact.length
         if w == 0
           z = false
         else
