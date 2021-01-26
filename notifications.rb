@@ -400,9 +400,8 @@ end
 def notify
   users = users_list();
   users.each do |x|
-    x = users[15]
     rules = rules_find(email: x)
-    # next unless rules
+    next unless rules
     rules.each do |rule|
       doc = history_query({ name: rule["package"] });
       unless doc.nil?
@@ -417,8 +416,8 @@ def notify
         end
       end
     end
-  # end
-# end
+  end
+end
 
 
 # email caching
