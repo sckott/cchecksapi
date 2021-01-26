@@ -452,6 +452,13 @@ class CCAPI < Sinatra::Application
         ck1 ? nil : raise(TypeError.new "each JSON object must have key 'package'")
         ck2 = ((w.has_key? "regex" and not w["regex"].nil?) or (['status', 'time', 'platforms'].map{|x| w.keys.include? x}.any? and not w.select {|k,_| ['status', 'time', 'platforms'].include? k}.empty?))
         ck2 ? nil : raise(TypeError.new "each JSON object must have either 'regex' or one or more of 'status', 'time', 'platforms'")
+        ck3 = w['status'] || nil # if nil, set as nil to skip error
+        if not ck3.nil?
+          statuses = ["ok", "note", "warn", "error", "fail"]
+          if not statuses.include? ck3.downcase
+            raise(TypeError.new "'status' must be one of 'ok', 'note', 'warn', 'error', or 'fail' (case insensitive)")
+          end
+        end
       end
       # get email
       token = get_token
