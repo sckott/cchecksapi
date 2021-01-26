@@ -304,9 +304,10 @@ class CheckRule
         docs = self.doc[0..(self.time - 1)];
         w = docs.map {|x| x['summary'][self.status.downcase]}.compact
         if w == 0
-          return false
+          z = false
+        else
+          z = docs.map {|x| x['summary'][self.status.downcase] > 0}.any?
         end
-        z = docs.map {|x| x['summary'][self.status.downcase] > 0}.any?
         return z
       end
     elsif not self.flavor.nil? and self.time.nil?
