@@ -280,6 +280,7 @@ class CheckRule
   end
 
   def check
+    return false unless not self.docfirst['summary'].nil?
     res_sft = self.check_status_flavor_time
     res_regex = self.check_regex # ready
     [res_sft, res_regex].compact.any?
