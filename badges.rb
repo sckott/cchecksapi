@@ -95,22 +95,26 @@ def do_badge(package, params, body)
   if pbody.nil?
     message = "unknown"
   else
-    if pbody["summary"]["any"].nil?
+    if pbody["summary"].nil?
       message = "unknown"
     else
-      if ignore
-        xx = pbody["summary"]
-        if !xx["any"]
-          message = xx["any"]
-        else
-          if xx["warn"] == 0 && xx["error"] == 0
-            message = false
-          else
-            message = xx["any"]
-          end
-        end
+      if pbody["summary"]["any"].nil?
+        message = "unknown"
       else
-        message = pbody["summary"]["any"]
+        if ignore
+          xx = pbody["summary"]
+          if !xx["any"]
+            message = xx["any"]
+          else
+            if xx["warn"] == 0 && xx["error"] == 0
+              message = false
+            else
+              message = xx["any"]
+            end
+          end
+        else
+          message = pbody["summary"]["any"]
+        end
       end
     end
 
@@ -128,18 +132,22 @@ def do_badge_worst(package, params, body)
   if pbody.nil?
     message = "unknown"
   else
-    if pbody["summary"]["any"].nil?
+    if pbody["summary"].nil?
       message = "unknown"
     else
-      xx = pbody["summary"]
-      if xx["error"] > 0
-        message = "ERROR"
-      elsif xx["warn"] > 0
-        message = "WARN"
-      elsif xx["note"] > 0
-        message = "NOTE"
+      if pbody["summary"]["any"].nil?
+        message = "unknown"
       else
-        message = "OK"
+        xx = pbody["summary"]
+        if xx["error"] > 0
+          message = "ERROR"
+        elsif xx["warn"] > 0
+          message = "WARN"
+        elsif xx["note"] > 0
+          message = "NOTE"
+        else
+          message = "OK"
+        end
       end
     end
   end
@@ -153,15 +161,19 @@ def do_badge_flavor(package, flavor, ignore, body)
   if pbody.nil?
     message = "unknown"
   else
-    res = pbody['checks'].select { |a| a["flavor"].include? flavor }
-    if res.length == 0
+    if pbody["checks"].nil?
       message = "unknown"
     else
-      stats = res.map {|a| a['status']}
-      if ignore
-        message = ['ERROR', 'WARN'].map { |a| stats.include? a }.any? ? "Not OK" : "OK"
+      res = pbody['checks'].select { |a| a["flavor"].include? flavor }
+      if res.length == 0
+        message = "unknown"
       else
-        message = stats.all? { |w| w == "OK" } ? "OK" : "Not OK"
+        stats = res.map {|a| a['status']}
+        if ignore
+          message = ['ERROR', 'WARN'].map { |a| stats.include? a }.any? ? "Not OK" : "OK"
+        else
+          message = stats.all? { |w| w == "OK" } ? "OK" : "Not OK"
+        end
       end
     end
   end
