@@ -57,8 +57,13 @@ def scrape_maintainer_body(z)
   if title.length == 0
     return {"email" => nil, "url" => nil, "table" => nil, "packages" => nil}
   end
-  email = title.split('Maintainer')[1].strip.split("<").last.sub(">", "").gsub(/[[:space:]]/, "_")
-  maint_name = title.split('Maintainer')[1].strip.split("<")[0].gsub(/[[:space:]]$/, "")
+
+  # fix here for a case where there's two instances of "Maintainer", e.g., 
+  # "CRAN Package Check Results for Maintainer ‘Maintainer:  Wilson Lara <wilarhen at gmail.com>’"
+  # https://cloud.r-project.org/web/checks/check_results_wilarhen_at_gmail.com.html
+  str_prep = title.gsub(/\u00A0/, " ").split('Maintainer').reject {|x| x.strip.empty?}[1].sub(/:\s+/, "")
+  email = str_prep.strip.split("<").last.sub(">", "").gsub(/[[:space:]]/, "_")
+  maint_name = str_prep.strip.split("<")[0].gsub(/[[:space:]]$/, "")
 
   if html.xpath('//table').length == 0
     # no summary table
