@@ -7,13 +7,10 @@ require 'date'
 require "mongo"
 require 'active_record'
 require 'aws-sdk-s3'
-require 'email_address'
 
 require_relative 'badges'
 require_relative 'funs'
 require_relative 'history'
-require_relative 'notifications'
-require_relative 'email'
 
 # mongo
 mongo_host = [ ENV.fetch('MONGO_PORT_27017_TCP_ADDR') + ":" + ENV.fetch('MONGO_PORT_27017_TCP_PORT') ]
@@ -132,7 +129,7 @@ class CCAPI < Sinatra::Application
   get "/heartbeat/?" do
     headers_get
     $ip = request.ip
-    { routes: CCAPI.routes["GET"].map{ |w| w[0].to_s }.select {|z| !z.match?(/token/)} }.to_json
+    { routes: CCAPI.routes["GET"].map{ |w| w[0].to_s }}.to_json
   end
 
   get '/pkgs' do
@@ -263,29 +260,6 @@ class CCAPI < Sinatra::Application
     do_badge_flavor(package, flavor, ignore, d)
   end
 
-
-  # get '/pkghistory' do
-  #   headers_get
-  #   begin
-  #     d = HistoryAll.endpoint(params)
-  #     raise Exception.new('no results found') if d.nil?
-  #     dat = d.as_json
-  #     dat.map { |x| x['summary'] = MultiJson.load(x['summary']) }
-  #     dat.map { |x| x['checks'] = MultiJson.load(x['checks']) }
-  #     dat.map { |x| x['check_details'] = MultiJson.load(x['check_details']) }
-  #     dat.map { |x| 
-  #       if !x['check_details'].nil?
-  #         x['check_details'] = x['check_details'].length > 0 ? x['check_details'] : nil 
-  #       end
-  #     }
-  #     hist = dat.map { |x| { package: x["package"], history: dat.delete('package') } }
-  #     { found: d.count, count: d.length, offset: params[:offset], error: nil,
-  #       data: hist }.to_json
-  #   rescue Exception => e
-  #     halt 400, { count: 0, error: { message: e.message }, data: nil }.to_json
-  #   end
-  # end
-
   get '/pkgs/:name/history' do
     headers_get
     begin
@@ -349,207 +323,6 @@ class CCAPI < Sinatra::Application
       array = ["package", "date_updated", "summary", "checks", "check_details"]
       dat = dat.map { |m| array.zip(m.values_at(*array)).to_h }
       { error: nil, count: cc(d.limit(nil).count(1)), returned: dat.length, data: dat }.to_json
-    rescue Exception => e
-      halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
-    end
-  end
-
-  get '/notifications/rules' do
-    authorized?
-    begin
-      token = get_token
-      email = User.where(token: token).first.as_json["email"]
-      if email == ENV.fetch('CCHECKS_SUPER_USER')
-        # super user gets all users rules
-        if params[:package].nil?
-          rules = rules_find().as_json
-          if rules.has_key? "scope"
-            rules = rules["scope"]
-          end
-        else
-          rules = rules_find(package: params[:package]).as_json
-        end
-
-      else
-        if params[:package].nil?
-          rules = rules_find(email: email).as_json
-        else
-          rules = rules_find(email: email, package: params[:package]).as_json
-        end
-
-        if rules.length > 0
-          rules.map { |e| e.delete('user_id') }
-        end
-      end
-      { error: nil, data: rules }.to_json
-    rescue Exception => e
-      halt 400, { error: { message: e.message }, data: nil }.to_json
-    end
-  end
-
-  get '/notifications/rules/:id' do
-    authorized?
-    begin
-      token = get_token
-      email = User.where(token: token).first.as_json["email"]
-      if email == ENV.fetch('CCHECKS_SUPER_USER')
-        # super user can access any rule
-        res = Rule.where(id: params[:id])
-      else
-        user_id = User.where(token: token).first.as_json["id"]
-        res = Rule.where(user_id: user_id, id: params[:id])
-      end
-
-      if res.empty?
-        rule_not_found(params)
-      else
-        res = res.first.as_json
-        res.delete('user_id')
-        { error: nil, data: res }.to_json
-      end
-    rescue Exception => e
-      halt 400, { error: { message: e.message }, data: nil }.to_json
-    end
-  end
-
-  delete '/notifications/rules/:id' do
-    authorized?
-    token = get_token
-
-    email = User.where(token: token).first.as_json["email"]
-    if email == ENV.fetch('CCHECKS_SUPER_USER')
-      # super user can delete any rule
-      res = Rule.where(id: params[:id])
-    else
-      user_id = User.where(token: token).first.as_json["id"]
-      res = Rule.where(user_id: user_id, id: params[:id])
-    end
-
-    if res.empty?
-      rule_not_found(params)
-    else
-      begin
-        rules_delete(id: params[:id])
-        status 204
-        headers "Access-Control-Allow-Methods" => "DELETE"
-      rescue Exception => e
-        halt 400, { error: { message: e.message }, data: nil }.to_json
-      end
-    end
-  end
-
-  post '/notifications/rules' do
-    authorized?
-    headers_post
-    begin
-      request.body.rewind
-      data = MultiJson.load(request.body.read)
-      data.is_a?(Array) ? nil : raise(TypeError.new "body must be a JSON Array")
-      data.map{|z| z.is_a? Hash}.all? ? nil : raise(TypeError.new "each element in body Array must be a JSON object")
-      # lint keys in each rule
-      data.each do |w|
-        ck1 = (w.has_key?('package') and not w['package'].nil?)
-        ck1 ? nil : raise(TypeError.new "each JSON object must have key 'package'")
-        ck2 = ((w.has_key? "regex" and not w["regex"].nil?) or (['status', 'time', 'platforms'].map{|x| w.keys.include? x}.any? and not w.select {|k,_| ['status', 'time', 'platforms'].include? k}.empty?))
-        ck2 ? nil : raise(TypeError.new "each JSON object must have either 'regex' or one or more of 'status', 'time', 'platforms'")
-        ck3 = w['status'] || nil # if nil, set as nil to skip error
-        if not ck3.nil?
-          statuses = ["ok", "note", "warn", "error", "fail"]
-          if not statuses.include? ck3.downcase
-            raise(TypeError.new "'status' must be one of 'ok', 'note', 'warn', 'error', or 'fail' (case insensitive)")
-          end
-        end
-      end
-      # get email
-      token = get_token
-      email = User.where(token: token).first.as_json["email"]
-      # load each rule
-      res = []
-      data.each do |w|
-        res << rules_add(email: email, package: w["package"], rules: [w])
-      end
-      rule_str = "package:%s, status:%s, flavor:%s, time:%s, regex:%s"
-      result = res.map {|z|
-        rz = z[0]["result"]
-        {
-          "id" => rz[:id],
-          "already_existed" => z[0]["existed"],
-          "rule" => rule_str % [
-            rz[:package], rz[:rule_status], rz[:rule_platforms],
-            rz[:rule_time], rz[:rule_regex]
-          ]
-        }
-      }
-      { error: nil, data: result }.to_json
-    rescue Exception => e
-      halt 400, { error: { message: e.message }, data: nil }.to_json
-    end
-  end
-
-  # tokens
-  def get_token
-    return env.fetch('HTTP_AUTHORIZATION', '').slice(7..-1)
-  end
-
-  def valid_email?(email)
-    raise Exception.new("an email must be given") unless not email.nil?
-    res = EmailAddress.error email
-    if not res.nil?
-      if res.empty?
-        res = "email string given doesn't appear to be an email address"
-      end
-      not_authorized(res)
-    end
-  end
-
-  def token_get(email)
-    valid_email? email
-    res = user_get(email: email).first
-    return res
-  end
-
-  def token_make(email)
-    valid_email? email
-    tg = token_get(email)
-    # if not nil, delete user, then issue new token next
-    if not tg.nil?
-      tg.destroy
-    end
-    # issue new token
-    tok = SecureRandom.hex
-    user_add(email: email, token: tok)
-    CchecksTokenEmail.perform_async(email, tok)
-    return user_get(email: email).first
-  end
-
-  def token_valid?(x)
-    if User.where(token: x).count < 1
-      raise Exception.new("token not found; get a token first with the /notifications/token route")
-    end
-  end
-
-  def authorized?
-    tok = env.fetch('HTTP_AUTHORIZATION', '')
-    if tok.nil?
-      not_authorized('A token must be given in the Authorization header')
-    else
-      tok = tok.slice(7..-1)
-    end
-
-    begin
-      token_valid? tok
-    rescue Exception => e
-      not_authorized(e.message)
-    end
-
-    return true
-  end
-
-  get '/notifications/token/?' do
-    begin
-      tok = token_make(params[:email])
-      content_type :json
-      { error: nil, data: "success, email sent" }.to_json
     rescue Exception => e
       halt 400, {'Content-Type' => 'application/json'}, { error: { message: e.message }}.to_json
     end

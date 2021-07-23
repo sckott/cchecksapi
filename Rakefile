@@ -1,7 +1,6 @@
 require_relative 'scrape'
 require_relative 'scrape_maintainer'
 require_relative 'history'
-require_relative 'notifications'
 
 # require 'bundler/gem_tasks'
 require 'rake/testtask'
@@ -56,24 +55,6 @@ desc "clean history"
 task :cleanhistory do
   begin
     delete_history_older_than_30_days()
-  rescue Exception => e
-    raise e
-  end
-end
-
-desc "run notifications"
-task :notifications do
-  begin
-    notify()
-  rescue Exception => e
-    raise e
-  end
-end
-
-desc "run storeemails"
-task :storeemails do
-  begin
-    store_emails()
   rescue Exception => e
     raise e
   end

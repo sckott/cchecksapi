@@ -5,8 +5,6 @@ Base URL: <https://cranchecks.info/>
 
 API Docs: <https://docs.cranchecks.info/>
 
-Authentication needed only on notifications routes
-
 Check out [cchecks][] for an R package interface to this API
 
 tech:
@@ -22,10 +20,6 @@ tech:
     * scrapes pkg specific data __every 3rd hour__ 
     * scrapes maintainer level data __every 4th hour__
     * poplulates the history routes once a day
-* Notifications
-  * Sidekiq for handling/scheduling/retrying notifications emails
-  * Redis for Sidekiq storage
-  * Sendgrid for sending emails
 
 ## JSON API routes
 
@@ -39,9 +33,6 @@ tech:
 - `/maintainers/:email:`
 - `/badges/:type/:package:`
 - `/badges/flavor/:flavor/:package:`
-- `notifications/token`
-- `notifications/rules` (GET, POST; auth required)
-- `notifications/rules/:id` (GET, DELETE; auth required)
 
 ## JSON API examples
 
@@ -222,13 +213,6 @@ flavor route
 ![](svgs/note.svg)
 ![](svgs/warn.svg)
 ![](svgs/error.svg)
-
-
-## Notifications
-
-Notifications builds on top of CRAN checks - it works by the user defining rules by which we scan CRAN checks results and check each user's rule; when a rule's conditions are met, we schedule and send an email notification.
-
-The main user interface to cran checks notifications is through the [cchecks][] R package. See its docs for details.
 
 
 [cchecks]: https://github.com/ropensci/cchecks
